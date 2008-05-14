@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <!-- Define Parent -->
+  <parent>
+    <artifactId>jboss-ejb3-build</artifactId>
+    <groupId>org.jboss.ejb3</groupId>
+    <version>0.13.3</version>
+    <relativePath>../build/pom.xml</relativePath>
+  </parent>
+
+  <!-- Maven POM Model Version -->
+  <modelVersion>4.0.0</modelVersion>
+
+  <!-- Artifact Information -->
+  <groupId>org.jboss.ejb3</groupId>
+  <artifactId>jboss-ejb3-common</artifactId>
+  <version>0.1.0-SNAPSHOT</version>
+  <name>JBoss EJB 3.0 Common Utilities</name>
+  <description>JBoss EJB 3.0 Utilities Common to all Components</description>
+  <url>http://www.jboss.org/jbossejb3/</url>
+
+  <!-- Dependencies -->
+
+  <!-- 
+    
+    Version information is centralized in 
+    the Parent Build POM
+    
+  -->
+
+  <dependencies>
+
+    <!-- JUnit -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+    </dependency>
+
+  </dependencies>
+</project>

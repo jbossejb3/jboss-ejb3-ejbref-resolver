@@ -1,0 +1,13 @@
+<projectDescription>
+  <name>jboss-ejb3-common</name>
+  <comment>JBoss EJB 3.0 Utilities Common to all Components</comment>
+  <projects/>
+  <buildSpec>
+    <buildCommand>
+      <name>org.eclipse.jdt.core.javabuilder</name>
+    </buildCommand>
+  </buildSpec>
+  <natures>
+    <nature>org.eclipse.jdt.core.javanature</nature>
+  </natures>
+</projectDescription>
