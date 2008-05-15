@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <!-- Define Parent -->
   <parent>
@@ -16,8 +18,33 @@
   <artifactId>jboss-ejb3-common</artifactId>
   <version>0.1.0-SNAPSHOT</version>
   <name>JBoss EJB 3.0 Common Utilities</name>
-  <description>JBoss EJB 3.0 Utilities Common to all Components</description>
+  <description>
+    JBoss EJB 3.0 Utilities Common to all Components
+  </description>
   <url>http://www.jboss.org/jbossejb3/</url>
+  
+  <build>
+
+        <plugins>
+          <!-- Surefire -->
+          <plugin>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <redirectTestOutputToFile>true</redirectTestOutputToFile>
+              <printSummary>true</printSummary>
+              <testFailureIgnore>false</testFailureIgnore>
+              <includes>
+                <include>**/*TestCase.java</include>
+                <include>**/*TestSuite.java</include>
+              </includes>
+              <forkMode>always</forkMode>
+              <argLine>-ea</argLine>
+            </configuration>
+          </plugin>
+
+        </plugins>
+
+  </build>
 
   <!-- Dependencies -->
 
@@ -34,6 +61,18 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
+    </dependency>
+
+    <!-- Logging -->
+    <dependency>
+      <groupId>org.jboss.logging</groupId>
+      <artifactId>jboss-logging-spi</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jboss.logging</groupId>
+      <artifactId>jboss-logging-log4j</artifactId>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>
