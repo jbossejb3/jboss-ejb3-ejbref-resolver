@@ -27,7 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Usefull methods for classes.
+ * Useful methods for classes.
  *
  * @author <a href="mailto:carlo.dewolf@jboss.com">Carlo de Wolf</a>
  * @version $Revision$
@@ -157,6 +157,31 @@ public class ClassHelper
          throw new NoSuchMethodException(cls.getName() + "." + methodName + argumentTypesToString(paramTypes));
       
       return result;
+   }
+   
+   /**
+    * Obtains a Class corresponding to the specified type using
+    * the specified ClassLoader, throwing a descriptive RuntimeException
+    * in the case the Class could not be found
+    * 
+    * @param type
+    * @param cl
+    * @return
+    * @author ALR
+    */
+   public static final Class<?> getClassFromTypeName(String type, ClassLoader cl)
+   {
+      try
+      {
+         // Load the class
+         return cl.loadClass(type);
+      }
+      catch (ClassNotFoundException e)
+      {
+         // Throw descriptive message
+         throw new RuntimeException("Specified class " + type + " could not be found by the "
+               + ClassLoader.class.getSimpleName() + ", " + cl, e);
+      }
    }
    
    private static void populateWithMethodsByName(List<Method> methods, Class<?> cls, String methodName)
