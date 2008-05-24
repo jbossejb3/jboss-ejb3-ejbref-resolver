@@ -231,7 +231,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       {
          throw new RuntimeException("Could not install at name \"" + name + "\" value " + value, e);
       }
-      log.info("Installed in " + this.getKernel().getController() + " at \"" + name + "\": " + value);
+      log.debug("Installed in " + this.getKernel().getController() + " at \"" + name + "\": " + value);
    }
 
    // --------------------------------------------------------------------------------||
