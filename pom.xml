@@ -72,6 +72,26 @@
       <artifactId>jboss-logging-log4j</artifactId>
       <scope>test</scope>
     </dependency>
+    
+    <dependency>
+      <groupId>org.jboss.microcontainer</groupId>
+      <artifactId>jboss-kernel</artifactId>
+      <version>2.0.0.Beta13</version>
+    </dependency>
+    
+    <!-- MC doesn't declare this as a proper dependency -->
+    <dependency>
+      <groupId>org.jboss.microcontainer</groupId>
+      <artifactId>jboss-managed</artifactId>
+      <version>2.0.0.Beta10</version>
+    </dependency>
+    
+    <dependency>
+      <groupId>org.jboss.ejb3</groupId>
+      <artifactId>jboss-ejb3-test</artifactId>
+      <version>0.1.0-SNAPSHOT</version>
+      <scope>test</scope>
+    </dependency>
 
   </dependencies>
 </project>
