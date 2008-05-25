@@ -60,7 +60,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
    // Constructor --------------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
 
-   public Ejb3McRegistrar(Kernel kernel)
+   public Ejb3McRegistrar(final Kernel kernel)
    {
       this.setKernel(kernel);
    }
@@ -78,7 +78,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
     * @throws NotBoundException
     * @return
     */
-   public Object lookup(Object name) throws NotBoundException
+   public Object lookup(final Object name) throws NotBoundException
    {
       // Get Controller Context
       ControllerContext context = this.getKernel().getController().getInstalledContext(name);
@@ -110,7 +110,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
     * @param value
     * @throws DuplicateBindException
     */
-   public void bind(Object name, Object value) throws DuplicateBindException
+   public void bind(final Object name, final Object value) throws DuplicateBindException
    {
       // Ensure there's nothing already at this location
       Object existing = null;
@@ -138,7 +138,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
     * @param name
     * @param value
     */
-   public void rebind(Object name, Object value)
+   public void rebind(final Object name, final Object value)
    {
       // Initialize
       boolean alreadyBound = true;
@@ -182,7 +182,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
     * @param name
     * @throws NotBoundException
     */
-   public void unbind(Object name) throws NotBoundException
+   public void unbind(final Object name) throws NotBoundException
    {
       // Ensure there is an object bound at this location
       try
@@ -210,6 +210,43 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       return this.getKernel();
    }
 
+   /**
+    * Invokes the specified method name on the object bound at the specified name, 
+    * returning the result
+    * 
+    * @param name
+    * @param methodName
+    * @param arguments Arguments to pass to the method
+    * @param signature String representation of fully-qualified class names of parameter types
+    * @return
+    * @throws NotBoundException If no object is bound at the specified name
+    */
+   public Object invoke(Object name, String methodName, Object[] arguments, String[] signature)
+         throws NotBoundException
+   {
+      // Ensure there is an object bound at this location
+      try
+      {
+         this.lookup(name);
+      }
+      catch (NotBoundException nbe)
+      {
+         throw new NotBoundException("Could not invoke upon object at name \"" + name + "\" as none is currently bound");
+      }
+
+      // Invoke
+      try
+      {
+         return this.getKernel().getBus().invoke(name, methodName, arguments, signature);
+      }
+      catch (Throwable t)
+      {
+         throw new RuntimeException("Error occured in invoking method \"" + methodName
+               + "\" upon object bound at name " + name, t);
+
+      }
+   }
+
    // --------------------------------------------------------------------------------||
    // Internal Helper Methods --------------------------------------------------------||
    // --------------------------------------------------------------------------------||
@@ -217,7 +254,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
    /**
     * Installs the specified value into MC at the specified name
     */
-   private void install(Object name, Object value)
+   private void install(final Object name, final Object value)
    {
       // Construct BMDB
       BeanMetaDataBuilder bmdb = BeanMetaDataBuilder.createBuilder(name.toString(), value.getClass().getName());
@@ -243,7 +280,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       return kernel;
    }
 
-   private void setKernel(Kernel kernel)
+   private void setKernel(final Kernel kernel)
    {
       this.kernel = kernel;
    }

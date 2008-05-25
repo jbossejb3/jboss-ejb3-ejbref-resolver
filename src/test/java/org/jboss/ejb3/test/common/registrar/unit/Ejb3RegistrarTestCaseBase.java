@@ -131,6 +131,12 @@ public class Ejb3RegistrarTestCaseBase
 
    }
 
+   /**
+    * Tests that binding to a name already bound results in
+    * a DuplicateBindException
+    * 
+    * @throws Throwable
+    */
    @Test
    public void testRegistrarDuplicateBindFails() throws Throwable
    {
@@ -156,6 +162,12 @@ public class Ejb3RegistrarTestCaseBase
             + DuplicateBindException.class.getName());
    }
 
+   /**
+    * Tests that looking up an unbound name
+    * results in NotBoundException
+    * 
+    * @throws Throwable
+    */
    @Test
    public void testRegistrarEmptyLookupFails() throws Throwable
    {
@@ -177,6 +189,82 @@ public class Ejb3RegistrarTestCaseBase
       TestCase.fail("Attempt to lookup an unbound name should result in " + NotBoundException.class.getName());
    }
 
+   /**
+    * Tests that invocation upon a bound object succeeds
+    * 
+    * @throws Throwable
+    */
+   @Test
+   public void testInvoke() throws Throwable
+   {
+
+      // Initialize new POJO
+      String bindName = "org.jboss.ejb3.TestBind" + UUID.randomUUID();
+      String oldValue = "oldValue";
+      SimplePojo pojo = new SimplePojo();
+      pojo.setProperty(oldValue);
+
+      // Bind
+      Ejb3RegistrarLocator.locateRegistrar().bind(bindName, pojo);
+
+      // Lookup
+      SimplePojo retrieved = (SimplePojo) Ejb3RegistrarLocator.locateRegistrar().lookup(bindName);
+
+      // Ensure set value is intact
+      TestCase.assertEquals(
+            "Property value set before placing in Registry was not equal to property value obtained from registry",
+            oldValue, retrieved.getProperty());
+
+      // Invoke to change property value
+      String newValue = "newValue";
+      Ejb3RegistrarLocator.locateRegistrar().invoke(bindName, "setProperty", new String[]
+      {newValue}, new String[]
+      {String.class.getName()});
+
+      // Ensure the value has changed
+      TestCase.assertEquals("Invocation did not have affect on retrived instance from Registry", newValue, retrieved
+            .getProperty());
+
+   }
+
+   /**
+    * Tests that invocation upon an unbound object fails
+    * with NotBoundException
+    * 
+    * @throws Throwable
+    */
+   @Test
+   public void testInvokeOnUnboundNameFails() throws Throwable
+   {
+
+      // Initialize an unused name
+      String bindName = "org.jboss.ejb3.unused";
+
+      // Invoke to change property value
+      String newValue = "newValue";
+      try
+      {
+         Ejb3RegistrarLocator.locateRegistrar().invoke(bindName, "setProperty", new String[]
+         {newValue}, new String[]
+         {String.class.getName()});
+      }
+      // Expected
+      catch (NotBoundException nbe)
+      {
+         return;
+      }
+
+      // Should not be reached
+      TestCase.fail("Invocation on unbound name in registry should fail with " + NotBoundException.class.getName());
+
+   }
+
+   /**
+    * Tests that the Registrar implementation cannot 
+    * be re-set after it's initially bound
+    * 
+    * @throws Throwable
+    */
    @Test
    public void testRegistrarImmutableAfterBound() throws Throwable
    {

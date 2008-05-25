@@ -74,6 +74,19 @@ public interface Ejb3Registrar
    void unbind(Object name) throws NotBoundException;
 
    /**
+    * Invokes the specified method name on the object bound at the specified name,
+    * returning the result
+    * 
+    * @param name
+    * @param methodName
+    * @param arguments Arguments to pass to the method
+    * @param signature String representation of fully-qualified class names of parameter types
+    * @return
+    * @throws NotBoundException If no object is bound at the specified name
+    */
+   Object invoke(Object name, String methodName, Object[] arguments, String[] signature) throws NotBoundException;
+
+   /**
     * Returns a provider implementation-specific class
     * to break contract and invoke upon vendor-specific
     * features.
