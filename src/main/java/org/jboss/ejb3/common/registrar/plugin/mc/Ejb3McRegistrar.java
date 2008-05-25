@@ -63,6 +63,8 @@ public class Ejb3McRegistrar implements Ejb3Registrar
    public Ejb3McRegistrar(final Kernel kernel)
    {
       this.setKernel(kernel);
+      log.debug("Created " + Ejb3McRegistrar.class.getSimpleName() + " with backing " + Kernel.class.getSimpleName()
+            + ": " + this.getKernel());
    }
 
    // --------------------------------------------------------------------------------||
@@ -98,7 +100,9 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       }
 
       // Return
-      return context.getTarget();
+      Object target = context.getTarget();
+      log.debug("Returning from name \"" + name + "\": " + target);
+      return target;
    }
 
    /**
@@ -195,7 +199,9 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       }
 
       // Uninstall
+      log.debug("Uninstalling bean with name \"" + name + "\"...");
       this.getKernel().getController().uninstall(name);
+      log.debug("Bean with name \"" + name + "\" uninstalled.");
    }
 
    /**
@@ -237,7 +243,11 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       // Invoke
       try
       {
-         return this.getKernel().getBus().invoke(name, methodName, arguments, signature);
+         log.debug("Invoking on bean with name \"" + name + "\" method " + methodName + ".(" + signature
+               + ") with arguments " + arguments + "...");
+         Object result = this.getKernel().getBus().invoke(name, methodName, arguments, signature);
+         log.debug("Invocation Result: " + result);
+         return result;
       }
       catch (Throwable t)
       {
