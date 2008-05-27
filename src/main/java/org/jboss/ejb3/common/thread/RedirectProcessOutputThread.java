@@ -34,7 +34,7 @@ import java.io.PrintStream;
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public abstract class RedirectProcessOutputThread extends Thread implements Runnable
+public class RedirectProcessOutputThread extends Thread implements Runnable
 {
 
    // --------------------------------------------------------------------------------||
@@ -46,6 +46,11 @@ public abstract class RedirectProcessOutputThread extends Thread implements Runn
     */
    private Process process;
 
+   /**
+    * The PrintStream to redirect to
+    */
+   private PrintStream printStream;
+
    // --------------------------------------------------------------------------------||
    // Constructor --------------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
@@ -55,9 +60,10 @@ public abstract class RedirectProcessOutputThread extends Thread implements Runn
     * 
     * @param process The Process whose output to capture
     */
-   public RedirectProcessOutputThread(Process process)
+   public RedirectProcessOutputThread(Process process, PrintStream printStream)
    {
-      this.process = process;
+      this.setProcess(process);
+      this.setPrintStream(printStream);
    }
 
    // --------------------------------------------------------------------------------||
@@ -92,12 +98,27 @@ public abstract class RedirectProcessOutputThread extends Thread implements Runn
    }
 
    // --------------------------------------------------------------------------------||
-   // Contracts ----------------------------------------------------------------------||
+   // Accessors / Mutators -----------------------------------------------------------||
    // --------------------------------------------------------------------------------||
 
-   /**
-    * Obtains the PrintStream to which output should be
-    * redirected
-    */
-   protected abstract PrintStream getPrintStream();
+   public Process getProcess()
+   {
+      return process;
+   }
+
+   public void setProcess(Process process)
+   {
+      this.process = process;
+   }
+
+   public PrintStream getPrintStream()
+   {
+      return printStream;
+   }
+
+   public void setPrintStream(PrintStream printStream)
+   {
+      this.printStream = printStream;
+   }
+
 }

@@ -21,8 +21,6 @@
  */
 package org.jboss.ejb3.common.thread;
 
-import java.io.PrintStream;
-
 /**
  * RedirectProcessOutputToSystemOutThread
  * 
@@ -46,21 +44,7 @@ public class RedirectProcessOutputToSystemOutThread extends RedirectProcessOutpu
     */
    public RedirectProcessOutputToSystemOutThread(Process process)
    {
-      super(process);
-   }
-
-   // --------------------------------------------------------------------------------||
-   // Required Implementations -------------------------------------------------------||
-   // --------------------------------------------------------------------------------||
-
-   /**
-    * Obtains the PrintStream to which output should be
-    * redirected
-    */
-   @Override
-   protected PrintStream getPrintStream()
-   {
-      return System.out;
+      super(process, System.out);
    }
 
 }
