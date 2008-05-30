@@ -25,13 +25,13 @@ package org.jboss.ejb3.common.registrar.spi;
  * NotBoundException
  * 
  * Signals that an operation cannot complete because
- * a requested object could not be found in the Ejb3Registry
+ * a requested object could not be found
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  * @see {@link Ejb3Registrar}
  */
-public class NotBoundException extends Exception
+public class NotBoundException extends RuntimeException
 {
 
    // --------------------------------------------------------------------------------||

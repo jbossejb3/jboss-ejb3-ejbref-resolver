@@ -75,15 +75,16 @@ public class Ejb3RegistrarLocator
     * a RuntimeException will be thrown
     * 
     * @return
+    * @throws NotBoundException
     */
-   public static Ejb3Registrar locateRegistrar()
+   public static Ejb3Registrar locateRegistrar() throws NotBoundException
    {
       // If no registrar implementation has been set
       if (Ejb3RegistrarLocator.instance == null)
       {
          // Throw unchecked exception to the user
-         throw new RuntimeException(new NotBoundException("Could not retrieve " + Ejb3Registrar.class.getSimpleName()
-               + " as a registrar implementation has not yet been bound."));
+         throw new NotBoundException("Could not retrieve " + Ejb3Registrar.class.getSimpleName()
+               + " as a registrar implementation has not yet been bound.");
       }
 
       // Return the registrar
@@ -110,6 +111,17 @@ public class Ejb3RegistrarLocator
       // Make a new instance and set registrar
       Ejb3RegistrarLocator.instance = new Ejb3RegistrarLocator(registrar);
       log.debug("Bound " + Ejb3Registrar.class.getSimpleName() + ": " + registrar);
+   }
+
+   /**
+    * Returns whether or not the Ejb3Registrar 
+    * has been bound to this Process
+    * 
+    * @return
+    */
+   public static boolean isRegistrarBound()
+   {
+      return Ejb3RegistrarLocator.instance != null;
    }
 
    // --------------------------------------------------------------------------------||
