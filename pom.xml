@@ -4,7 +4,7 @@
   <parent>
     <artifactId>jboss-ejb3-build</artifactId>
     <groupId>org.jboss.ejb3</groupId>
-    <version>0.13.7</version>
+    <version>0.13.9-SNAPSHOT</version>
     <relativePath>../build/pom.xml</relativePath>
   </parent>
 
@@ -21,26 +21,34 @@
   </description>
   <url>http://www.jboss.org/jbossejb3/</url>
   
+    <!-- Build Configuration -->
   <build>
 
-        <plugins>
-          <!-- Surefire -->
-          <plugin>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <redirectTestOutputToFile>true</redirectTestOutputToFile>
-              <printSummary>true</printSummary>
-              <testFailureIgnore>false</testFailureIgnore>
-              <includes>
-                <include>**/*TestCase.java</include>
-                <include>**/*TestSuite.java</include>
-              </includes>
-              <forkMode>always</forkMode>
-              <argLine>-ea</argLine>
-            </configuration>
-          </plugin>
+    <plugins>
 
-        </plugins>
+      <!-- Assembly Plugin (Common Client) -->
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-1</version>
+        <executions>
+          <execution>
+            <id>make-assembly</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attached</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <descriptors>
+            <descriptor>jboss-ejb3-common-client.xml</descriptor>
+          </descriptors>
+          <attach>true</attach>
+        </configuration>
+        <inherited>false</inherited>
+      </plugin>
+
+    </plugins>
 
   </build>
 
