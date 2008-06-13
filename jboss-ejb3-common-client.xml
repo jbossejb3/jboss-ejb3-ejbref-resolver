@@ -17,6 +17,7 @@
       <outputDirectory></outputDirectory>
       <includes>
         <include>org/jboss/ejb3/common/registrar/spi/**</include>
+        <include>org/jboss/ejb3/common/string/StringUtils</include>
       </includes>
     </fileSet>
 
