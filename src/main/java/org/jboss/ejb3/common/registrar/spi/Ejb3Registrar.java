@@ -45,6 +45,20 @@ public interface Ejb3Registrar
    Object lookup(Object name) throws NotBoundException;
 
    /**
+    * Obtains the value bound at the specified name, 
+    * throwing NotBoundException if there is nothing
+    * bound at the key.  The value returned will be automatically
+    * casted to the specified type.
+    * 
+    * @param <T>
+    * @param name
+    * @param type
+    * @return
+    * @throws NotBoundException
+    */
+   <T> T lookup(Object name, Class<T> type) throws NotBoundException;
+
+   /**
     * Binds the specified value to the key of specified name, 
     * throwing a DuplicateBindException in the case the
     * name is not unique

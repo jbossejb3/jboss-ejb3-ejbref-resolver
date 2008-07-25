@@ -104,6 +104,40 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       log.debug("Returning from name \"" + name + "\": " + target);
       return target;
    }
+   
+   /**
+    * Obtains the value bound at the specified name, 
+    * throwing NotBoundException if there is nothing
+    * bound at the key.  The value returned will be automatically
+    * casted to the specified type.
+    * 
+    * @param <T>
+    * @param name
+    * @param type
+    * @return
+    * @throws NotBoundException
+    */
+   public <T> T lookup(Object name, Class<T> type) throws NotBoundException
+   {
+      // Obtain object
+      Object obj = this.lookup(name);
+      
+      // Cast
+      T returned = null;
+      try
+      {
+         returned = type.cast(obj);
+      }
+      catch(ClassCastException cce)
+      {
+         throw new RuntimeException("Value returned from key \"" + name
+               + "\" in Object Store was not of expected type " + type + ", but was instead "
+               + obj.getClass().getName());
+      }
+      
+      // Return
+      return returned;
+   }
 
    /**
     * Binds the specified value to the key of specified name, 

@@ -16,6 +16,7 @@
       <directory>target/classes</directory>
       <outputDirectory></outputDirectory>
       <includes>
+        <include>org/jboss/ejb3/common/lang/SerializableMethod.class</include>
         <include>org/jboss/ejb3/common/registrar/spi/**</include>
         <include>org/jboss/ejb3/common/string/StringUtils.class</include>
       </includes>

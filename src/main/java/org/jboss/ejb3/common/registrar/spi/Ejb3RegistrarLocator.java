@@ -114,6 +114,27 @@ public class Ejb3RegistrarLocator
    }
 
    /**
+    * Unbinds the current Ejb3Registrar implementation
+    * as the registrar of record 
+    * 
+    * @param registrar
+    * @throws NotBoundException
+    */
+   public synchronized static void unbindRegistrar() throws NotBoundException
+   {
+      // Ensure bound
+      if (!isRegistrarBound())
+      {
+         throw new NotBoundException(Ejb3Registrar.class.getSimpleName() + " is not bound, cannot unbind");
+      }
+
+      // Unbind Registrar
+      Ejb3Registrar reg = Ejb3RegistrarLocator.instance.getRegistrar();
+      log.debug("Unbinding " + Ejb3Registrar.class.getSimpleName() + ": " + reg);
+      Ejb3RegistrarLocator.instance.registrar = null;
+   }
+
+   /**
     * Returns whether or not the Ejb3Registrar 
     * has been bound to this Process
     * 
