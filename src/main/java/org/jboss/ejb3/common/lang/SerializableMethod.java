@@ -110,7 +110,7 @@ public class SerializableMethod implements Serializable
    public SerializableMethod(Method method, Class<?> actualClass)
    {
       // Pass to alternate constructor
-      this(method, actualClass.getName());
+      this(method, actualClass != null ? actualClass.getName() : null);
    }
 
    /**
