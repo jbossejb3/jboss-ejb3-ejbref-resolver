@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jboss.logging.Logger;
+
 /**
  * SerializableMethod
  * 
@@ -45,6 +47,8 @@ public class SerializableMethod implements Serializable
    // ------------------------------------------------------------------------------||
 
    private static final long serialVersionUID = 1L;
+
+   private static final Logger log = Logger.getLogger(SerializableMethod.class);
 
    // ------------------------------------------------------------------------------||
    // Instance Members -------------------------------------------------------------||
@@ -78,7 +82,7 @@ public class SerializableMethod implements Serializable
    // ------------------------------------------------------------------------------||
    // Constructors -----------------------------------------------------------------||
    // ------------------------------------------------------------------------------||
-   
+
    /**
     * Constructor
     * 
@@ -108,7 +112,7 @@ public class SerializableMethod implements Serializable
       // Pass to alternate constructor
       this(method, actualClass.getName());
    }
-   
+
    /**
     * Constructor
     * 
@@ -290,7 +294,7 @@ public class SerializableMethod implements Serializable
    protected Class<?> getClassFromName(String name, ClassLoader cl)
    {
       // Perform assertions
-      assert cl != null : ClassLoader.class.getSimpleName() + "must be defined.";
+      assert cl != null : ClassLoader.class.getSimpleName() + " must be defined.";
 
       /*
        * Handle Primitives
@@ -399,6 +403,16 @@ public class SerializableMethod implements Serializable
 
    public void setActualClassName(String actualClassName)
    {
+      // If no actual class name is specified
+      if (actualClassName == null || actualClassName.trim().length() == 0)
+      {
+         // Use the declaring class name
+         String declaringClassName = this.getDeclaringClassName();
+         assert declaringClassName != null && declaringClassName.trim().length() > 0 : "Cannot implicitly set actual class to declaring class as declaring class is not defined";
+         actualClassName = declaringClassName;
+         log.debug("Actual class name has not been explicitly specified, so defaulting to declaring class name: "
+               + declaringClassName);
+      }
       this.actualClassName = actualClassName;
    }
 
