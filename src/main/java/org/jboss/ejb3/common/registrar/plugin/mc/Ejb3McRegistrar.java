@@ -21,8 +21,15 @@
  */
 package org.jboss.ejb3.common.registrar.plugin.mc;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.jboss.beans.metadata.spi.builder.BeanMetaDataBuilder;
 import org.jboss.dependency.spi.ControllerContext;
+import org.jboss.dependency.spi.ControllerState;
 import org.jboss.ejb3.common.registrar.spi.DuplicateBindException;
 import org.jboss.ejb3.common.registrar.spi.Ejb3Registrar;
 import org.jboss.ejb3.common.registrar.spi.NotBoundException;
@@ -70,6 +77,47 @@ public class Ejb3McRegistrar implements Ejb3Registrar
    // --------------------------------------------------------------------------------||
    // Required Implementations -------------------------------------------------------||
    // --------------------------------------------------------------------------------||
+   
+   /**
+    * Lists out all installed (bound) objects in form
+    * key == name , value == object.  Primarily for 
+    * metrics/debugging/management.  If nothing is installed,
+    * an empty Map will be returned.  The returned Map is
+    * immutable.
+    * 
+    * @return
+    */
+   public Map<Object, Object> list()
+   {
+
+      // Obtain all installed Contexts
+      Set<ControllerContext> installedContexts = this.getKernel().getController().getContextsByState(
+            ControllerState.INSTALLED);
+
+      // If nothing is installed
+      if (installedContexts == null)
+      {
+         // Return an empty Map
+         return new HashMap<Object, Object>();
+      }
+
+      // Initialize a Map
+      Map<Object, Object> installedObjects = new ConcurrentHashMap<Object, Object>();
+
+      // For each installed Context
+      for (ControllerContext context : installedContexts)
+      {
+         Object bindName = context.getName();
+         Object value = context.getTarget();
+         installedObjects.put(bindName, value == null ? "[null]" : value);
+      }
+
+      // Decorate as immutable
+      installedObjects = Collections.unmodifiableMap(installedObjects);
+
+      // Return
+      return installedObjects;
+   }
 
    /**
     * Obtains the value bound at the specified name, 

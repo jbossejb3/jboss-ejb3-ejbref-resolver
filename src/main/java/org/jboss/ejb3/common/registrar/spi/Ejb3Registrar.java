@@ -21,6 +21,8 @@
  */
 package org.jboss.ejb3.common.registrar.spi;
 
+import java.util.Map;
+
 /**
  * Ejb3Registrar
  * 
@@ -33,6 +35,17 @@ package org.jboss.ejb3.common.registrar.spi;
  */
 public interface Ejb3Registrar
 {
+   /**
+    * Lists out all installed (bound) objects in form
+    * key == name , value == object.  Primarily for 
+    * metrics/debugging/management.  If nothing is installed,
+    * an empty Map will be returned.  The returned Map is
+    * immutable.
+    * 
+    * @return
+    */
+   Map<Object, Object> list();
+
    /**
     * Obtains the value bound at the specified name, 
     * throwing NotBoundException if there is nothing
