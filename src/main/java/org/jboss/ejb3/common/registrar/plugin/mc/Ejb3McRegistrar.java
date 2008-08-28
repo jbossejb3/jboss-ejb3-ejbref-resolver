@@ -77,7 +77,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
    // --------------------------------------------------------------------------------||
    // Required Implementations -------------------------------------------------------||
    // --------------------------------------------------------------------------------||
-   
+
    /**
     * Lists out all installed (bound) objects in form
     * key == name , value == object.  Primarily for 
@@ -130,13 +130,46 @@ public class Ejb3McRegistrar implements Ejb3Registrar
     */
    public Object lookup(final Object name) throws NotBoundException
    {
+      return this.lookup(name, true);
+   }
+
+   /**
+    * Obtains the value bound at the specified name, 
+    * throwing NotBoundException if there is nothing
+    * bound at the key.  If the "checkInstalled"
+    * flag is true, this implementation will
+    * also ensure that the lookup value is of
+    * ControllerState.INSTALLED, else NotBoundException
+    * 
+    * @param name
+    * @param checkInstalled
+    * @throws NotBoundException
+    * @return
+    */
+   public Object lookup(final Object name, boolean checkInstalled) throws NotBoundException
+   {
       // Get Controller Context
-      ControllerContext context = this.getKernel().getController().getInstalledContext(name);
+      ControllerContext context = this.getKernel().getController().getContext(name, null);
 
       // Ensure Bound
       if (context == null || context.getTarget() == null)
       {
          throw new NotBoundException("Requested value bound at name \"" + name + "\" is not bound.");
+      }
+
+      // If we're checking for installed
+      if (checkInstalled)
+      {
+         // Get State
+         ControllerState state = context.getState();
+
+         // If State is other than INSTALLED
+         if (!state.equals(ControllerState.INSTALLED))
+         {
+            throw new NotBoundException("Object is bound at key " + name
+                  + ", but is not fully installed, instead of state: " + state);
+         }
+
       }
 
       // If there's an error with the context, throw it
@@ -152,7 +185,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       log.debug("Returning from name \"" + name + "\": " + target);
       return target;
    }
-   
+
    /**
     * Obtains the value bound at the specified name, 
     * throwing NotBoundException if there is nothing
@@ -169,20 +202,20 @@ public class Ejb3McRegistrar implements Ejb3Registrar
    {
       // Obtain object
       Object obj = this.lookup(name);
-      
+
       // Cast
       T returned = null;
       try
       {
          returned = type.cast(obj);
       }
-      catch(ClassCastException cce)
+      catch (ClassCastException cce)
       {
          throw new RuntimeException("Value returned from key \"" + name
                + "\" in Object Store was not of expected type " + type + ", but was instead "
                + obj.getClass().getName());
       }
-      
+
       // Return
       return returned;
    }
@@ -273,7 +306,7 @@ public class Ejb3McRegistrar implements Ejb3Registrar
       // Ensure there is an object bound at this location
       try
       {
-         this.lookup(name);
+         this.lookup(name, false);
       }
       catch (NotBoundException nbe)
       {

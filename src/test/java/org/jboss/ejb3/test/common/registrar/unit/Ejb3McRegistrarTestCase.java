@@ -21,11 +21,18 @@
  */
 package org.jboss.ejb3.test.common.registrar.unit;
 
+import junit.framework.TestCase;
+
+import org.jboss.beans.metadata.spi.builder.BeanMetaDataBuilder;
+import org.jboss.dependency.spi.ControllerContext;
+import org.jboss.dependency.spi.ControllerState;
 import org.jboss.ejb3.common.registrar.plugin.mc.Ejb3McRegistrar;
 import org.jboss.ejb3.common.registrar.spi.Ejb3RegistrarLocator;
+import org.jboss.ejb3.common.registrar.spi.NotBoundException;
 import org.jboss.ejb3.test.mc.bootstrap.EmbeddedTestMcBootstrap;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 /**
  * Ejb3McRegistrarTestCase
@@ -46,6 +53,59 @@ public class Ejb3McRegistrarTestCase extends Ejb3RegistrarTestCaseBase
    private static EmbeddedTestMcBootstrap bootstrap;
 
    // --------------------------------------------------------------------------------||
+   // Tests --------------------------------------------------------------------------||
+   // --------------------------------------------------------------------------------||
+
+   /**
+    * Tests that an object bound with state other than "INSTALLED" may still be
+    * unbound from MC via the Ejb3Registrar
+    * 
+    * EJBTHREE-1472
+    */
+   @Test
+   public void testUnbindFromControllerStateOtherThanInstalled() throws Throwable
+   {
+      // Create a new key/value pair for binding into MC
+      String name = "MyObject";
+      Object value = new Object();
+
+      // Construct BMDB, adding an unmet dependency
+      BeanMetaDataBuilder bmdb = BeanMetaDataBuilder.createBuilder(name, value.getClass().getName());
+      bmdb.addDependency("SomeDependencyThatDoesn'tExist");
+
+      // Install into MC, though because of the unmet dependency will not reach "INSTALLED" state
+      try
+      {
+         getBootstrap().getKernel().getController().install(bmdb.getBeanMetaData(), value);
+      }
+      catch (Throwable e)
+      {
+         throw new RuntimeException("Could not install at name \"" + name + "\" value " + value, e);
+      }
+
+      // Ensure that the install didn't completely succeed
+      ControllerContext context = getBootstrap().getKernel().getController().getContext(name, null);
+      TestCase.assertTrue("The test object should not be fully installed for this test", !context.getState().equals(
+            ControllerState.INSTALLED));
+
+      // Unbind
+      Ejb3RegistrarLocator.locateRegistrar().unbind(name);
+
+      // Check that we've unbound
+      boolean isUnbound = false;
+      try
+      {
+         Ejb3RegistrarLocator.locateRegistrar().lookup(name);
+      }
+      catch (NotBoundException nbe)
+      {
+         isUnbound = true;
+      }
+      TestCase.assertTrue("The test object should be unbound", isUnbound);
+
+   }
+
+   // --------------------------------------------------------------------------------||
    // Lifecycle Methods --------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
 
@@ -57,7 +117,7 @@ public class Ejb3McRegistrarTestCase extends Ejb3RegistrarTestCaseBase
 
       // Bind the Ejb3Registrar
       Ejb3RegistrarLocator.bindRegistrar(new Ejb3McRegistrar(Ejb3McRegistrarTestCase.getBootstrap().getKernel()));
-      
+
       // Deploy
       Ejb3McRegistrarTestCase.bootstrap.deploy(Ejb3McRegistrarTestCase.class);
    }
