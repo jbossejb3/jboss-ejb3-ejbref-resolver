@@ -105,7 +105,7 @@ public class Ejb3RegistrarLocator
       if (Ejb3RegistrarLocator.instance != null)
       {
          throw new DuplicateBindException(Ejb3Registrar.class.getSimpleName()
-               + " is already bound and is now immutable");
+               + " is already bound and is now immutable via bindRegistrar; must explicitly call unbindRegistrar first");
       }
 
       // Make a new instance and set registrar
@@ -131,7 +131,7 @@ public class Ejb3RegistrarLocator
       // Unbind Registrar
       Ejb3Registrar reg = Ejb3RegistrarLocator.instance.getRegistrar();
       log.debug("Unbinding " + Ejb3Registrar.class.getSimpleName() + ": " + reg);
-      Ejb3RegistrarLocator.instance.registrar = null;
+      Ejb3RegistrarLocator.instance = null;
    }
 
    /**

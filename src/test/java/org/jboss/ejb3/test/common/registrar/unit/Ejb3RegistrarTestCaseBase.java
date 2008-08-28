@@ -258,6 +258,42 @@ public class Ejb3RegistrarTestCaseBase
       TestCase.fail("Invocation on unbound name in registry should fail with " + NotBoundException.class.getName());
 
    }
+   
+   /**
+    * Tests that the Registrar implementation can be unbound and rebound
+    *  
+    * @throws Throwable
+    */
+   @Test
+   public void testRegistrarImplementationRebind() throws Throwable
+   {
+      // See if bound
+      boolean registrarBound = Ejb3RegistrarLocator.isRegistrarBound();
+
+      // Ensure reported as bound
+      TestCase.assertTrue(Ejb3Registrar.class.getSimpleName() + " should be reported as bound", registrarBound);
+
+      // Get existing bound Registrar implementation
+      Ejb3Registrar registrar = Ejb3RegistrarLocator.locateRegistrar();
+
+      // Unbind
+      Ejb3RegistrarLocator.unbindRegistrar();
+
+      // See if bound
+      registrarBound = Ejb3RegistrarLocator.isRegistrarBound();
+
+      // Ensure reported as not bound
+      TestCase.assertTrue(Ejb3Registrar.class.getSimpleName() + " should be reported as unbound", !registrarBound);
+
+      // Rebind
+      Ejb3RegistrarLocator.bindRegistrar(registrar);
+
+      // See if bound
+      registrarBound = Ejb3RegistrarLocator.isRegistrarBound();
+
+      // Ensure reported as bound
+      TestCase.assertTrue(Ejb3Registrar.class.getSimpleName() + " should be reported as bound", registrarBound);
+   }
 
    /**
     * Tests that the Registrar implementation cannot 
