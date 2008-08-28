@@ -27,8 +27,7 @@ import org.jboss.logging.Logger;
  * Ejb3RegistrarLocator
  * 
  * Provides simple mechanism for locating and setting
- * the Ejb3Registrar.  Once set, the Ejb3Registrar is
- * immutable and cannot be replaced.
+ * the Ejb3Registrar.
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
