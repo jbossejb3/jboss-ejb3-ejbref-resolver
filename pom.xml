@@ -84,7 +84,7 @@
     <dependency>
       <groupId>org.jboss.microcontainer</groupId>
       <artifactId>jboss-kernel</artifactId>
-      <version>2.0.0.Beta14</version>
+      <version>${version.org.jboss.microcontainer_jboss-kernel}</version>
     </dependency>
     
     <!-- MC doesn't declare this as a proper dependency 
