@@ -19,38 +19,34 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.ejb3.test.common.proxy;
+package org.jboss.ejb3.common.proxy.spi;
 
 import java.lang.reflect.Method;
 
-import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
-import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
 
 /**
- * AddOneProcessor
+ * ChainableInvocationHandler
  * 
- * A test ChainableProcessor which adds a value of 1
- * to the result
+ * An InvocationHandler that is chain-aware.  May perform
+ * its own processing before, after, or ignoring the rest of the 
+ * InvocationHandlers in the chain of which it is a part
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public class AddOneProcessor implements ChainableProcessor
+public interface ChainableProcessor
 {
-
-   /* (non-Javadoc)
-    * @see org.jboss.ejb3.proxy.intf.ChainableInvocationHandler#invoke(org.jboss.ejb3.proxy.handler.ChainInvocationHandler, java.lang.Object, java.lang.reflect.Method, java.lang.Object[])
+   /**
+    * Invokes this handler with the specified arguments.  Processing
+    * may be performed before or after the rest of the chain depending 
+    * upon when "chain.invokeNext()" is executed.
+    * 
+    * @param chain
+    * @param proxy
+    * @param method
+    * @param args
+    * @exception Throwable
+    * @return
     */
-   public Object invoke(ChainedProcessingInvocationHandler chain, Object proxy, Method method, Object[] args) throws Throwable
-   {
-      // Send along to the rest of the chain
-      Object result = chain.invokeNext(proxy, method, args);
-
-      // Add 1
-      int newValue = ((Integer) result) + 1;
-
-      // Return
-      return newValue;
-   }
-
+   Object invoke(ChainedProcessingInvocationHandler chain, Object proxy, Method method, Object[] args) throws Throwable;
 }

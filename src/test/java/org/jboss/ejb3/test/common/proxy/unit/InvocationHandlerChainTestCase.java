@@ -23,9 +23,9 @@ package org.jboss.ejb3.test.common.proxy.unit;
 
 import junit.framework.TestCase;
 
-import org.jboss.ejb3.common.proxy.ChainableProcessor;
-import org.jboss.ejb3.common.proxy.ChainedProcessingInvocationHandler;
-import org.jboss.ejb3.common.proxy.ProxyUtils;
+import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
+import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
+import org.jboss.ejb3.common.proxy.spi.ProxyUtils;
 import org.jboss.ejb3.test.common.proxy.AddOneProcessor;
 import org.jboss.ejb3.test.common.proxy.Addable;
 import org.jboss.ejb3.test.common.proxy.CalculatorServiceBean;
@@ -38,6 +38,7 @@ import org.junit.Test;
 /**
  * InvocationHandlerChainTestCase
  *
+ * Tests 
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
@@ -104,6 +105,40 @@ public class InvocationHandlerChainTestCase
 
       // Test
       TestCase.assertEquals("Chain Invocation Handler did not work as expected", expected, result);
+
+   }
+
+   /**
+    * Tests that invocation upon a chain more than once succeeds
+    * (ie. that once the delegate is reached at end of chain, the
+    * internal counter is reset)
+    */
+   @Test
+   public void testChainInvokableMoreThanOnce() throws Exception
+   {
+      // Initialize
+      Addable calc = new CalculatorServiceBean();
+      int[] args =
+      {1, 2, 3};
+
+      // Make the chain
+      ChainedProcessingInvocationHandler chain = new ChainedProcessingInvocationHandler(calc, new ChainableProcessor[]
+      {new AddOneProcessor()});
+
+      // Apply the chain
+      Addable newCalc = (Addable) ProxyUtils.mixinProxy(calc, null, chain);
+
+      // Get the result from the service
+      int result1 = newCalc.add(args);
+      // Invoke again
+      int result2 = newCalc.add(args);
+
+      // Calculate the expected result (adding all, plus 1)
+      int expected = this.add(args) + 1;
+
+      // Test
+      TestCase.assertEquals("Chain Invocation Handler did not work as expected", expected, result1);
+      TestCase.assertEquals("Second invocation upon the chain fails", expected, result2);
 
    }
 

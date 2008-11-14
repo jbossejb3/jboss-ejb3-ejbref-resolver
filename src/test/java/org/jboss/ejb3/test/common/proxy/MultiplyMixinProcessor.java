@@ -23,8 +23,8 @@ package org.jboss.ejb3.test.common.proxy;
 
 import java.lang.reflect.Method;
 
-import org.jboss.ejb3.common.proxy.ChainableProcessor;
-import org.jboss.ejb3.common.proxy.ChainedProcessingInvocationHandler;
+import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
+import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
 
 /**
  * MultiplyMixinInvocationHandler

@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.ejb3.common.proxy;
+package org.jboss.ejb3.common.proxy.spi;
 
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
@@ -70,6 +70,21 @@ public class ProxyUtils
    public static Object mixinProxy(Object delegate, Class<?>[] additionalInterfaces,
          ChainedProcessingInvocationHandler chain)
    {
+      return mixinProxy(delegate, additionalInterfaces, chain, Object.class);
+   }
+
+   /**
+    * Wraps the existing Proxy in a new Proxy to extend functionality, adding 
+    * support of the specified interfaces via the specified 
+    * ChainedProcessingInvocationHandler
+    * (which contains a chain of processors)
+    * 
+    * May be used to, at runtime, extend a service
+    */
+   @SuppressWarnings("unchecked")
+   public static <T> T mixinProxy(Object delegate, Class<?>[] additionalInterfaces,
+         ChainedProcessingInvocationHandler chain, T expectedType)
+   {
       // Initialize
       Set<Class<?>> newInterfaces = new HashSet<Class<?>>();
       Object newProxy = null;
@@ -97,7 +112,7 @@ public class ProxyUtils
       {}), chain);
 
       // Return
-      return newProxy;
+      return (T) newProxy;
    }
 
 }

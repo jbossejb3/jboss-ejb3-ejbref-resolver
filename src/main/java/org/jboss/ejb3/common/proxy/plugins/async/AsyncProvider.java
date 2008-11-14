@@ -19,34 +19,27 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.ejb3.common.proxy;
+package org.jboss.ejb3.common.proxy.plugins.async;
 
-import java.lang.reflect.Method;
-
+import java.util.concurrent.Future;
 
 /**
- * ChainableInvocationHandler
+ * AsyncProvider
  * 
- * An InvocationHandler that is chain-aware.  May perform
- * its own processing before, after, or ignoring the rest of the 
- * InvocationHandlers in the chain of which it is a part
+ * Contract for a provider of asynchronous invocations, with 
+ * support to obtain the Future result 
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public interface ChainableProcessor
+public interface AsyncProvider
 {
+
    /**
-    * Invokes this handler with the specified arguments.  Processing
-    * may be performed before or after the rest of the chain depending 
-    * upon when "chain.invokeNext()" is executed.
+    * Obtains the result of the last asynchronous
+    * invocation performed as a Future
     * 
-    * @param chain
-    * @param proxy
-    * @param method
-    * @param args
-    * @exception Throwable
     * @return
     */
-   Object invoke(ChainedProcessingInvocationHandler chain, Object proxy, Method method, Object[] args) throws Throwable;
+   Future<?> getFutureResult();
 }

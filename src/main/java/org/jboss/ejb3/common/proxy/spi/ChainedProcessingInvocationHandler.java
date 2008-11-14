@@ -19,7 +19,7 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.ejb3.common.proxy;
+package org.jboss.ejb3.common.proxy.spi;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -58,6 +58,12 @@ public class ChainedProcessingInvocationHandler implements InvocationHandler
    // ------------------------------------------------------------------------------||
    // Constructor ------------------------------------------------------------------||
    // ------------------------------------------------------------------------------||
+
+   public ChainedProcessingInvocationHandler(Object delegate, ChainableProcessor processor)
+   {
+      this(delegate, new ChainableProcessor[]
+      {processor});
+   }
 
    public ChainedProcessingInvocationHandler(Object delegate, ChainableProcessor[] handlerChain)
    {
@@ -98,18 +104,33 @@ public class ChainedProcessingInvocationHandler implements InvocationHandler
          // Ensure the delegate is supplied
          assert delegate != null : "Requiste delegate was not supplied";
 
+         assert method.getDeclaringClass().isAssignableFrom(delegate.getClass());
+
+         // Reset the chain counter so we can invoke again
+         this.reset();
+
          // Use reflection to pass the invocation to the delegate
          return method.invoke(delegate, args);
+
       }
       // More handlers are present in the chain
       else
       {
+         System.out.println("*");
          // Invoke upon the next handler in the chain
          returnValue = this.getHandlerChain()[this.nextHandlerIndex++].invoke(this, proxy, method, args);
       }
 
       // Return
       return returnValue;
+   }
+   
+   /**
+    * Resets the internal counter for the next processor in the chain
+    */
+   public void reset()
+   {
+      this.nextHandlerIndex = 0;
    }
 
    // ------------------------------------------------------------------------------||
@@ -130,7 +151,7 @@ public class ChainedProcessingInvocationHandler implements InvocationHandler
    // Accessors / Mutators ---------------------------------------------------------||
    // ------------------------------------------------------------------------------||
 
-   protected Object getDelegate()
+   public Object getDelegate()
    {
       return delegate;
    }
