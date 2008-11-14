@@ -89,7 +89,7 @@ public class ClassHelper
          return null;
       
       // TODO: what is faster? scan or catch exception?
-      for(Method method : target.getDeclaredMethods())
+      for(Method method : SecurityActions.getDeclaredMethods(target))
       {
          if(method.getName().equals(methodName))
          {
@@ -190,7 +190,7 @@ public class ClassHelper
       if(cls == null)
          return;
       
-      for(Method method : cls.getDeclaredMethods())
+      for(Method method : SecurityActions.getDeclaredMethods(cls))
       {
          if(method.getName().equals(methodName))
             methods.add(method);
@@ -208,7 +208,7 @@ public class ClassHelper
       }
 
       // For all declared methods
-      for (Method method : clazz.getDeclaredMethods())
+      for (Method method : SecurityActions.getDeclaredMethods(clazz))
       {
          if (method.getName().startsWith(methodNamePrefix))
             methods.add(method);
