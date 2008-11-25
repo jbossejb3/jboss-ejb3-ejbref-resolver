@@ -4,7 +4,7 @@
   <parent>
     <artifactId>jboss-ejb3-build</artifactId>
     <groupId>org.jboss.ejb3</groupId>
-    <version>0.13.11</version>
+    <version>1.0.0-SNAPSHOT</version>
     <relativePath>../build/pom.xml</relativePath>
   </parent>
 
@@ -84,21 +84,11 @@
     <dependency>
       <groupId>org.jboss.microcontainer</groupId>
       <artifactId>jboss-kernel</artifactId>
-      <version>${version.org.jboss.microcontainer_jboss-kernel}</version>
     </dependency>
     
-    <!-- MC doesn't declare this as a proper dependency 
     <dependency>
-      <groupId>org.jboss.microcontainer</groupId>
-      <artifactId>jboss-managed</artifactId>
-      <version>2.0.0.Beta10</version>
-    </dependency> -->
-    
-    <dependency>
-      <groupId>org.jboss.ejb3</groupId>
-      <artifactId>jboss-ejb3-test</artifactId>
-      <version>0.1.1</version>
-      <scope>test</scope>
+      <groupId>org.jboss.metadata</groupId>
+      <artifactId>jboss-metadata</artifactId>
     </dependency>
 
   </dependencies>

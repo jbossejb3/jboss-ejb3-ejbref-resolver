@@ -21,6 +21,8 @@
  */
 package org.jboss.ejb3.test.common.registrar.unit;
 
+import java.net.URL;
+
 import junit.framework.TestCase;
 
 import org.jboss.beans.metadata.spi.builder.BeanMetaDataBuilder;
@@ -29,7 +31,9 @@ import org.jboss.dependency.spi.ControllerState;
 import org.jboss.ejb3.common.registrar.plugin.mc.Ejb3McRegistrar;
 import org.jboss.ejb3.common.registrar.spi.Ejb3RegistrarLocator;
 import org.jboss.ejb3.common.registrar.spi.NotBoundException;
-import org.jboss.ejb3.test.mc.bootstrap.EmbeddedTestMcBootstrap;
+import org.jboss.kernel.Kernel;
+import org.jboss.kernel.plugins.bootstrap.basic.BasicBootstrap;
+import org.jboss.kernel.plugins.deployment.xml.BasicXMLDeployer;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -50,7 +54,9 @@ public class Ejb3McRegistrarTestCase extends Ejb3RegistrarTestCaseBase
    // Class Members ------------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
 
-   private static EmbeddedTestMcBootstrap bootstrap;
+   private static BasicBootstrap bootstrap;
+   
+   private static final String DEFAULT_SUFFIX_DEPLOYABLE_XML = "-jboss-beans.xml";
 
    // --------------------------------------------------------------------------------||
    // Tests --------------------------------------------------------------------------||
@@ -113,21 +119,23 @@ public class Ejb3McRegistrarTestCase extends Ejb3RegistrarTestCaseBase
    public static void beforeClass() throws Throwable
    {
       // Create and set a new MC Bootstrap
-      Ejb3McRegistrarTestCase.setBootstrap(EmbeddedTestMcBootstrap.createEmbeddedMcBootstrap());
+      BasicBootstrap bootstrap = new BasicBootstrap();
+      Ejb3McRegistrarTestCase.setBootstrap(bootstrap);
+      bootstrap.run();
+      Kernel kernel = bootstrap.getKernel();
 
       // Bind the Ejb3Registrar
-      Ejb3RegistrarLocator.bindRegistrar(new Ejb3McRegistrar(Ejb3McRegistrarTestCase.getBootstrap().getKernel()));
+      Ejb3RegistrarLocator.bindRegistrar(new Ejb3McRegistrar(kernel));
 
       // Deploy
-      Ejb3McRegistrarTestCase.bootstrap.deploy(Ejb3McRegistrarTestCase.class);
+      BasicXMLDeployer deployer = new BasicXMLDeployer(kernel);
+      URL deployUrl = getDeployableXmlUrl(Ejb3McRegistrarTestCase.class);
+      deployer.deploy(deployUrl);
    }
 
    @AfterClass
    public static void afterClass() throws Exception
    {
-      // Shutdown MC
-      Ejb3McRegistrarTestCase.bootstrap.shutdown();
-
       // Set Bootstrap to null
       Ejb3McRegistrarTestCase.setBootstrap(null);
    }
@@ -136,14 +144,43 @@ public class Ejb3McRegistrarTestCase extends Ejb3RegistrarTestCaseBase
    // Accessors / Mutators -----------------------------------------------------------||
    // --------------------------------------------------------------------------------||
 
-   public static EmbeddedTestMcBootstrap getBootstrap()
+   public static BasicBootstrap getBootstrap()
    {
       return Ejb3McRegistrarTestCase.bootstrap;
    }
 
-   public static void setBootstrap(EmbeddedTestMcBootstrap bootstrap)
+   public static void setBootstrap(BasicBootstrap bootstrap)
    {
       Ejb3McRegistrarTestCase.bootstrap = bootstrap;
+   }
+   
+   // --------------------------------------------------------------------------------||
+   // Helper Methods -----------------------------------------------------------------||
+   // --------------------------------------------------------------------------------||
+   
+   private static URL getDeployableXmlUrl(Class<?> clazz)
+   {
+      // Initialize
+      StringBuffer urlString = new StringBuffer();
+
+      // Assemble filename in form "fullyQualifiedClassName"
+      urlString.append(clazz.getName());
+
+      // Make a String
+      String flatten = urlString.toString();
+
+      // Adjust for filename structure instead of package structure
+      flatten = flatten.replace('.', '/');
+
+      // Append Suffix
+      flatten = flatten + DEFAULT_SUFFIX_DEPLOYABLE_XML;
+
+      // Get URL
+      URL url = Thread.currentThread().getContextClassLoader().getResource(flatten);
+      assert url != null : "URL was not found for " + flatten;
+      
+      // Return
+      return url;
    }
 
 }
