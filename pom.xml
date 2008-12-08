@@ -90,6 +90,11 @@
       <groupId>org.jboss.metadata</groupId>
       <artifactId>jboss-metadata</artifactId>
     </dependency>
+ 
+    <dependency>
+      <groupId>org.jboss.deployers</groupId>
+      <artifactId>jboss-deployers-spi</artifactId>
+    </dependency>
 
   </dependencies>
 </project>
