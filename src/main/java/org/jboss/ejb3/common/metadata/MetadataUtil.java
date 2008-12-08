@@ -23,9 +23,19 @@ package org.jboss.ejb3.common.metadata;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.jboss.logging.Logger;
+import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
+import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeansMetaData;
+import org.jboss.metadata.ejb.jboss.JBossEntityBeanMetaData;
 import org.jboss.metadata.ejb.jboss.JBossMetaData;
+import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
+import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.BasicJndiBindingPolicy;
+import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.JBossSessionPolicyDecorator;
+import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.JbossEntityPolicyDecorator;
+import org.jboss.metadata.ejb.jboss.jndipolicy.spi.DefaultJndiBindingPolicy;
 import org.jboss.metadata.process.chain.ProcessorChain;
 import org.jboss.metadata.process.chain.ejb.jboss.JBossMetaDataProcessorChain;
 import org.jboss.metadata.process.processor.JBossMetaDataProcessor;
@@ -139,4 +149,158 @@ public class MetadataUtil
       return chain;
    }
 
+   /**
+    * Wraps all EJBs in the specified metadata with JNDI Resolution  
+    * logic as determined by the specified policy
+    * 
+    * @param metadata
+    */
+   public static void decorateEjbsWithJndiPolicy(JBossMetaData md, ClassLoader cl)
+   {
+      // Initialize Map of beans to replace
+      Map<JBossEnterpriseBeanMetaData, JBossEnterpriseBeanMetaData> beansToReplace = new HashMap<JBossEnterpriseBeanMetaData, JBossEnterpriseBeanMetaData>();
+
+      // Obtain defined JNDI Binding Policy
+      String mdJndiPolicyName = md.getJndiBindingPolicy();
+      if (mdJndiPolicyName != null && mdJndiPolicyName.trim().length() == 0)
+      {
+         mdJndiPolicyName = null;
+      }
+      if (mdJndiPolicyName != null)
+      {
+         log.debug(JBossMetaData.class.getSimpleName() + " " + md + " has defined "
+               + DefaultJndiBindingPolicy.class.getSimpleName() + " \"" + mdJndiPolicyName + "\"");
+      }
+
+      // For each of the Enterprise Beans
+      JBossEnterpriseBeansMetaData beans = md.getEnterpriseBeans();
+      for (JBossEnterpriseBeanMetaData bean : beans)
+      {
+         // Initialize a decorated instance
+         JBossEnterpriseBeanMetaData decoratedBean = null;
+
+         // Obtain a Policy
+         DefaultJndiBindingPolicy policy = getJndiBindingPolicy(bean, mdJndiPolicyName, cl);
+
+         // If this is a Session or Service Bean
+         if (bean.isSession() || bean.isService())
+         {
+            // Cast
+            assert bean instanceof JBossSessionBeanMetaData : JBossEnterpriseBeanMetaData.class.getSimpleName()
+                  + " representing as Session Bean is not castable to " + JBossSessionBeanMetaData.class.getName();
+            JBossSessionBeanMetaData sessionBean = (JBossSessionBeanMetaData) bean;
+
+            // Create a Session JNDI Policy Decorated Bean
+            decoratedBean = new JBossSessionPolicyDecorator(sessionBean, policy);
+         }
+
+         // If this is an Entity Bean
+         if (bean.isEntity())
+         {
+            // Cast
+            assert bean instanceof JBossEntityBeanMetaData : JBossEnterpriseBeanMetaData.class.getSimpleName()
+                  + " representing as Entity Bean is not castable to " + JBossEntityBeanMetaData.class.getName();
+            JBossEntityBeanMetaData entityBean = (JBossEntityBeanMetaData) bean;
+
+            // Create a Entity JNDI Policy Decorated Bean
+            decoratedBean = new JbossEntityPolicyDecorator(entityBean, policy);
+         }
+
+         // If we've decorated this bean, add to the map of beans to replace
+         if (decoratedBean != null)
+         {
+            beansToReplace.put(bean, decoratedBean);
+         }
+      }
+
+      // Replace with decorated beans
+      for (JBossEnterpriseBeanMetaData beanToReplace : beansToReplace.keySet())
+      {
+         JBossEnterpriseBeanMetaData beanToReplaceWith = beansToReplace.get(beanToReplace);
+         boolean removed = beans.remove(beanToReplace);
+         assert removed : "Remove operation of " + beanToReplace + " from " + beans + " resulted in no action";
+         beans.add(beanToReplaceWith);
+         log.debug("Replaced " + beanToReplace.getEjbName() + " with decorated instance fit with "
+               + DefaultJndiBindingPolicy.class.getSimpleName());
+      }
+   }
+
+   // ------------------------------------------------------------------------------||
+   // Internal Helper Methods ------------------------------------------------------||
+   // ------------------------------------------------------------------------------||
+
+   /**
+    * Obtains the JNDI Binding Policy instance to use for the specified metadata,
+    * defaulting to a BasicJndiBindingPolicy if none is explicitly specified either in
+    * the metadata itself or in its parent deployable unit
+    * 
+    * @param md The Bean Metadata
+    * @param deployableUnitDefaultJndiPolicyClassName The (optional) JNDI Policy declared 
+    *       by the deployable unit (JBossMetaData)
+    * @param cl The Deployable Unit's ClassLoader
+    */
+   protected static DefaultJndiBindingPolicy getJndiBindingPolicy(JBossEnterpriseBeanMetaData md,
+         String deployableUnitDefaultJndiPolicyClassName, ClassLoader cl)
+   {
+      // Initialize a JNDI Binding Policy
+      DefaultJndiBindingPolicy policy = null;
+
+      // Obtain JNDI Policy Name defined at the EJB level
+      String beanJndiPolicyName = md.getJndiBindingPolicy();
+      if (beanJndiPolicyName != null && beanJndiPolicyName.trim().length() == 0)
+      {
+         beanJndiPolicyName = null;
+      }
+      if (beanJndiPolicyName != null)
+      {
+         log.debug("Session EJB " + md.getEjbName() + " has defined " + DefaultJndiBindingPolicy.class.getSimpleName()
+               + " of \"" + beanJndiPolicyName);
+      }
+
+      // Use JNDI Policy defined by MD, then override at bean level
+      String jndiPolicyName = deployableUnitDefaultJndiPolicyClassName != null
+            ? deployableUnitDefaultJndiPolicyClassName
+            : beanJndiPolicyName;
+
+      // If JNDI Policy is defined
+      if (jndiPolicyName != null)
+      {
+         // Load the configured JNDI Binding Policy
+         Class<?> policyClass = null;
+         try
+         {
+            policyClass = Class.forName(jndiPolicyName, true, cl);
+         }
+         catch (ClassNotFoundException cnfe)
+         {
+            throw new RuntimeException("Could not find defined JNDI Binding Policy Class: " + jndiPolicyName, cnfe);
+         }
+
+         // Instanciate the configured JNDI Binding Policy
+         try
+         {
+            policy = (DefaultJndiBindingPolicy) policyClass.newInstance();
+         }
+         catch (Throwable t)
+         {
+            throw new RuntimeException("Error in instanciating defined JNDI Binding Policy Class: " + jndiPolicyName, t);
+         }
+
+         // Log
+         log.debug("Using " + DefaultJndiBindingPolicy.class.getSimpleName() + " \"" + policy.getClass().getName()
+               + "\" for Session Bean " + md.getEjbName());
+      }
+
+      // If no JNDI Binding Policy was defined
+      if (policy == null)
+      {
+         // Default to BasicJndiBindingPolicy
+         policy = new BasicJndiBindingPolicy();
+         log.debug("Defaulting to " + DefaultJndiBindingPolicy.class.getSimpleName() + " of \""
+               + BasicJndiBindingPolicy.class.getName() + "\" for Session Bean " + md.getEjbName());
+      }
+
+      // Return
+      return policy;
+   }
 }
