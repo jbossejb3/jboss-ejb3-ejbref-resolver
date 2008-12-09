@@ -23,8 +23,7 @@ package org.jboss.ejb3.common.resolvers.spi;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.ejb3.common.deployers.spi.AttachmentNames;
@@ -82,14 +81,24 @@ public abstract class EjbReferenceResolverBase
     * 
     * @param reference
     * @param metadata
+    * @param cl The ClassLoader for the specified metadata
     * @return
     */
-   protected String getMatch(EjbReference reference, JBossMetaData metadata) throws NonDeterministicInterfaceException
+   protected String getMatch(EjbReference reference, JBossMetaData metadata, ClassLoader cl)
+         throws NonDeterministicInterfaceException
    {
-
       // Initialize
       log.debug("Resolving reference for " + reference + " in " + metadata);
       Collection<JBossSessionBeanMetaData> matches = new ArrayList<JBossSessionBeanMetaData>();
+
+      /*
+       * If mapped-name is defined, bypass all other resolution and use it 
+       */
+      String mappedName = reference.getMappedName();
+      if (mappedName != null && mappedName.trim().length() > 0)
+      {
+         return mappedName;
+      }
 
       // Get all Enterprise Beans contained in the metadata
       JBossEnterpriseBeansMetaData beans = metadata.getEnterpriseBeans();
@@ -97,7 +106,7 @@ public abstract class EjbReferenceResolverBase
       // Loop through all EJBs
       for (JBossEnterpriseBeanMetaData bean : beans)
       {
-         // We only can inject Session Beans (Entity and MD are not targets)
+         // We only can inject Session Beans (Entity and MDB are not targets)
          if (!bean.isSession())
          {
             continue;
@@ -107,7 +116,7 @@ public abstract class EjbReferenceResolverBase
          JBossSessionBeanMetaData smd = (JBossSessionBeanMetaData) bean;
 
          // See if this is a match
-         if (this.isMatch(reference, smd))
+         if (this.isMatch(reference, smd, cl))
          {
             // Add to the matches found
             matches.add(smd);
@@ -123,7 +132,7 @@ public abstract class EjbReferenceResolverBase
          String beanName = reference.getBeanName();
          assert beanName == null || beanName.trim().length() == 0 : "Error in resolution logic, more than one eligible EJB "
                + "was found to satisfy beanInterface "
-               + this.getBeanInterfaceName(reference)
+               + this.getBeanInterfaceName(reference, cl)
                + ", but EJB Name was explicitly-specified.";
 
          // Report error
@@ -133,7 +142,7 @@ public abstract class EjbReferenceResolverBase
       }
 
       // Return the JNDI name of the matching metadata if present, otherwise null
-      return matches.size() > 0 ? this.getJndiName(reference, matches.iterator().next()) : null;
+      return matches.size() > 0 ? this.getJndiName(reference, matches.iterator().next(), cl) : null;
 
    }
 
@@ -143,34 +152,16 @@ public abstract class EjbReferenceResolverBase
     * 
     * @param reference
     * @param md
+    * @param cl The ClassLoader for the specified metadata
     * @return
     */
-   protected boolean isMatch(EjbReference reference, JBossSessionBeanMetaData md)
+   protected boolean isMatch(EjbReference reference, JBossSessionBeanMetaData md, ClassLoader cl)
    {
       // Initialize
-      Set<String> interfaces = new HashSet<String>();
+      List<String> interfaces = new ArrayList<String>();
 
       // Add all eligible bean interfaces
-      BusinessLocalsMetaData businessLocals = md.getBusinessLocals();
-      BusinessRemotesMetaData businessRemotes = md.getBusinessRemotes();
-      String home = md.getHome();
-      String localHome = md.getLocalHome();
-      if (businessLocals != null)
-      {
-         interfaces.addAll(businessLocals);
-      }
-      if (businessRemotes != null)
-      {
-         interfaces.addAll(businessRemotes);
-      }
-      if (home != null && home.trim().length() > 0)
-      {
-         interfaces.add(home);
-      }
-      if (localHome != null && localHome.trim().length() > 0)
-      {
-         interfaces.add(localHome);
-      }
+      interfaces.addAll(this.getAllParentInterfaces(this.getEligibleBeanInterfaces(md), cl));
 
       // Get the requested bean interface 
       String requestedInterface = reference.getBeanInterface();
@@ -179,6 +170,24 @@ public abstract class EjbReferenceResolverBase
       // Does this EJB have the requested interface?
       if (interfaces.contains(requestedInterface))
       {
+         /*
+          * Check that the interface is unique to this EJB
+          */
+         boolean found = false;
+         for (String interfaze : interfaces)
+         {
+            boolean equal = interfaze.equals(requestedInterface);
+            if (equal && !found)
+            {
+               found = true;
+            }
+            else if (equal && found)
+            {
+               throw new NonDeterministicInterfaceException("beanInterface specified, " + interfaze
+                     + ", is not unique within EJB " + md.getEjbName());
+            }
+         }
+
          // Get the requested EJB name
          String ejbName = reference.getBeanName();
 
@@ -201,17 +210,163 @@ public abstract class EjbReferenceResolverBase
    }
 
    /**
+    * Returns a Collection containing the union of the interface names specified
+    * as well as all all parent interfaces
+    * 
+    * @param interfaceNames
+    * @param cl
+    * @return
+    */
+   private Collection<String> getAllParentInterfaces(Collection<String> interfaceNames, ClassLoader cl)
+   {
+      // Initialize
+      Collection<String> interfaces = new ArrayList<String>();
+
+      // Go through all interface names
+      for (String interfaceName : interfaceNames)
+      {
+         // Add this
+         interfaces.addAll(this.getAllParentInterfaces(interfaceName, cl));
+      }
+
+      // Return
+      return interfaces;
+   }
+
+   private Collection<String> getAllParentInterfaces(String interfaceName, ClassLoader cl)
+   {
+      // Initialize
+      Collection<String> interfaces = new ArrayList<String>();
+      interfaces.add(interfaceName);
+
+      // Load this interface, so we can get the parent interfaces
+      try
+      {
+         Class<?> interfaze = Class.forName(interfaceName, false, cl);
+         Class<?>[] parentInterfaces = interfaze.getInterfaces();
+         for (Class<?> parentInterface : parentInterfaces)
+         {
+            // Get the parent interface name
+            String parentInterfaceName = parentInterface.getName();
+
+            // Get the parents of the parent
+            Collection<String> grandParents = this.getAllParentInterfaces(parentInterfaceName, cl);
+            if (grandParents.size() > 0)
+            {
+               interfaces.addAll(grandParents);
+            }
+
+            // Add the parent interface name
+            if (!interfaces.contains(parentInterfaceName))
+            {
+               interfaces.add(parentInterfaceName);
+            }
+         }
+      }
+      catch (ClassNotFoundException cnfe)
+      {
+         throw new RuntimeException("Could not load class from specified ClassLoader " + cl, cnfe);
+      }
+
+      // Return
+      return interfaces;
+   }
+
+   /**
+    * Obtains all interfaces declared by the metadata
+    * that are eligible for "beanInterface" inclusion
+    * (local business, remote business, local home, home) 
+    * 
+    * @param smd
+    * @return
+    */
+   private Collection<String> getEligibleBeanInterfaces(JBossSessionBeanMetaData smd)
+   {
+      Collection<String> interfaces = new ArrayList<String>();
+
+      // Add all eligible bean interfaces
+      BusinessLocalsMetaData businessLocals = smd.getBusinessLocals();
+      BusinessRemotesMetaData businessRemotes = smd.getBusinessRemotes();
+      String home = smd.getHome();
+      String localHome = smd.getLocalHome();
+      if (businessLocals != null)
+      {
+         interfaces.addAll(businessLocals);
+      }
+      if (businessRemotes != null)
+      {
+         interfaces.addAll(businessRemotes);
+      }
+      if (home != null && home.trim().length() > 0)
+      {
+         interfaces.add(home);
+      }
+      if (localHome != null && localHome.trim().length() > 0)
+      {
+         interfaces.add(localHome);
+      }
+
+      // Return
+      return interfaces;
+   }
+
+   /**
     * Obtains the resolved JNDI target for the specified reference
     * within the specified metadata
     * 
     * @param reference
     * @param metadata
+    * @param cl
     * @return
     */
-   protected String getJndiName(EjbReference reference, JBossSessionBeanMetaData metadata)
+   protected String getJndiName(EjbReference reference, JBossSessionBeanMetaData metadata, ClassLoader cl)
    {
-      String interfaceName = this.getBeanInterfaceName(reference);
-      return JbossSessionBeanJndiNameResolver.resolveJndiName(metadata, interfaceName);
+      // If mapped-name is specified, just use it
+      String mappedName = reference.getMappedName();
+      if (mappedName != null && mappedName.trim().length() > 0)
+      {
+         log.debug("Bypassing resolution, using mappedName of " + reference);
+         return mappedName;
+      }
+
+      // Get the bean interface name
+      String interfaceName = this.getBeanInterfaceName(reference, cl);
+
+      // Get eligible interfaces
+      Collection<String> eligibleInterfaces = this.getEligibleBeanInterfaces(metadata);
+
+      // Ensure the bean interface name is directly declared in metadata
+      if (!eligibleInterfaces.contains(interfaceName))
+      {
+
+         /*
+          *  Not directly in metadata, so we've got to resolve this
+          */
+         log.debug("Found specified beanInterface that is not a direct beanInterface of EJB " + metadata.getEjbName()
+               + ": " + interfaceName);
+
+         // Loop through eligible interfaces
+         for (String eligibleInterface : eligibleInterfaces)
+         {
+            // Get the parents of the eligible interface
+            Collection<String> parents = this.getAllParentInterfaces(eligibleInterface, cl);
+            // If the specified interface name if a parent of this eligible interface
+            if (parents.contains(interfaceName))
+            {
+               // Set the interface name to the resolved
+               log.debug("Resolved specified beanInterface " + interfaceName + " to " + eligibleInterface + " for EJB "
+                     + metadata.getEjbName());
+               interfaceName = eligibleInterface;
+               break;
+            }
+         }
+
+      }
+
+      // Return 
+      String resolvedJndiName = JbossSessionBeanJndiNameResolver.resolveJndiName(metadata, interfaceName);
+      log.debug("Resolved JNDI Name for " + reference + " of EJB " + metadata.getEjbName() + ": " + resolvedJndiName);
+      return resolvedJndiName;
    }
 
    /**
@@ -219,9 +374,10 @@ public abstract class EjbReferenceResolverBase
     * reference, validating its presence along the way
     * 
     * @param reference
+    * @param cl
     * @return
     */
-   private String getBeanInterfaceName(EjbReference reference)
+   private String getBeanInterfaceName(EjbReference reference, ClassLoader cl)
    {
       // Get the bean interface
       String interfaceName = reference.getBeanInterface();
@@ -230,6 +386,18 @@ public abstract class EjbReferenceResolverBase
       // Return
       return interfaceName;
 
+   }
+
+   /**
+    * Obtains the root deployment unit 
+    * 
+    * @param du
+    * @return
+    */
+   protected DeploymentUnit getRoot(DeploymentUnit du)
+   {
+      // Recurse until we hit the root
+      return du.getParent() == null ? du : this.getRoot(du.getParent());
    }
 
 }

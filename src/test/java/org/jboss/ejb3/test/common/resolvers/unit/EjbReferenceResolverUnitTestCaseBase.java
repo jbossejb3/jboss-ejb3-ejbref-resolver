@@ -59,13 +59,18 @@ import org.jboss.ejb3.common.metadata.MetadataUtil;
 import org.jboss.ejb3.common.resolvers.plugins.FirstMatchEjbReferenceResolver;
 import org.jboss.ejb3.common.resolvers.spi.EjbReference;
 import org.jboss.ejb3.common.resolvers.spi.EjbReferenceResolver;
+import org.jboss.ejb3.common.resolvers.spi.NonDeterministicInterfaceException;
 import org.jboss.ejb3.test.common.resolvers.Child1Bean;
+import org.jboss.ejb3.test.common.resolvers.Child1CommonBusiness;
 import org.jboss.ejb3.test.common.resolvers.Child1LocalBusiness;
 import org.jboss.ejb3.test.common.resolvers.Child1LocalHome;
 import org.jboss.ejb3.test.common.resolvers.Child1RemoteBusiness;
 import org.jboss.ejb3.test.common.resolvers.Child1RemoteHome;
+import org.jboss.ejb3.test.common.resolvers.Child2And3CommonBusiness;
 import org.jboss.ejb3.test.common.resolvers.Child2Bean;
 import org.jboss.ejb3.test.common.resolvers.Child2LocalBusiness;
+import org.jboss.ejb3.test.common.resolvers.Child3Bean;
+import org.jboss.ejb3.test.common.resolvers.Child3LocalBusiness;
 import org.jboss.ejb3.test.common.resolvers.NestedChildBean;
 import org.jboss.ejb3.test.common.resolvers.NestedChildLocalBusiness;
 import org.jboss.ejb3.test.common.resolvers.ParentBean;
@@ -80,47 +85,48 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * EjbReferenceResolverUnitTestCase
+ * EjbReferenceResolverUnitTestCaseBase
  * 
  * Test Cases to validate the pluggable EjbReferenceResolver
  * 
  * Uses DUs with the following structure:
  * 
- * Parent
+ * Parent (Parent EJB)
  * |
- * |------ Child1
+ * |------ Child1 (Child EJB)
  * |         |
- * |         |------NestedChild
+ * |         |------NestedChild (NestedChild EJB)
  * |
- * |------ Child2
+ * |------ Child2 (Child2 and Child3 EJBs)
  * 
  * ...where each DU has an EJB w/ Local Business interface.  
  * "Child1" has bean interfaces for 
- * local business, remote business, home, and local home.
+ * local business, remote business, home, and local home.  "Child2" DU
+ * has "child2" and "Child3" EJBs.
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public class EjbReferenceResolverUnitTestCase
+public abstract class EjbReferenceResolverUnitTestCaseBase
 {
    // --------------------------------------------------------------------------------||
    // Class Members ------------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
 
-   private static final Logger log = Logger.getLogger(EjbReferenceResolverUnitTestCase.class);
+   private static final Logger log = Logger.getLogger(EjbReferenceResolverUnitTestCaseBase.class);
 
-   private static MockDeploymentUnit parentDu;
+   protected static MockDeploymentUnit parentDu;
 
-   private static MockDeploymentUnit child1Du;
+   protected static MockDeploymentUnit child1Du;
 
-   private static MockDeploymentUnit child2Du;
+   protected static MockDeploymentUnit child2Du;
 
-   private static MockDeploymentUnit nestedChildDu;
+   protected static MockDeploymentUnit nestedChildDu;
 
-   private static EjbReferenceResolver resolver;
+   protected static EjbReferenceResolver resolver;
 
    // --------------------------------------------------------------------------------||
-   // Lifecycle Methods --------------------------------------------------------------||
+   // Tests --------------------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
 
    /**
@@ -168,6 +174,7 @@ public class EjbReferenceResolverUnitTestCase
       String child1LocalHomeBeanInterfaceName = Child1LocalHome.class.getName();
       String child1RemoteHomeBeanInterfaceName = Child1RemoteHome.class.getName();
       String child2BeanInterfaceName = Child2LocalBusiness.class.getName();
+      String child3BeanInterfaceName = Child3LocalBusiness.class.getName();
       String nestedChildBeanInterfaceName = NestedChildLocalBusiness.class.getName();
 
       // Create references
@@ -177,6 +184,7 @@ public class EjbReferenceResolverUnitTestCase
       EjbReference child1LocalHomeReference = new EjbReference(null, child1LocalHomeBeanInterfaceName, null);
       EjbReference child1RemoteHomeReference = new EjbReference(null, child1RemoteHomeBeanInterfaceName, null);
       EjbReference child2Reference = new EjbReference(null, child2BeanInterfaceName, null);
+      EjbReference child3Reference = new EjbReference(null, child3BeanInterfaceName, null);
       EjbReference nestedChildReference = new EjbReference(null, nestedChildBeanInterfaceName, null);
 
       // Resolve
@@ -194,6 +202,8 @@ public class EjbReferenceResolverUnitTestCase
       log.debug("Resolved " + child1RemoteHomeReference + " from " + fromDu + " to " + jndiNameChild1RemoteHome);
       String jndiNameChild2 = resolver.resolveEjb(fromDu, child2Reference);
       log.debug("Resolved " + child2Reference + " from " + fromDu + " to " + jndiNameChild2);
+      String jndiNameChild3 = resolver.resolveEjb(fromDu, child3Reference);
+      log.debug("Resolved " + child3Reference + " from " + fromDu + " to " + jndiNameChild3);
       String jndiNameNestedChild = resolver.resolveEjb(fromDu, nestedChildReference);
       log.debug("Resolved " + nestedChildReference + " from " + fromDu + " to " + jndiNameNestedChild);
 
@@ -205,6 +215,7 @@ public class EjbReferenceResolverUnitTestCase
       String expectedChild1LocalHome = child1EjbName + "/localHome";
       String expectedChild1RemoteHome = child1EjbName + "/home";
       String expectedChild2 = Child2Bean.class.getSimpleName() + "/local-" + child2BeanInterfaceName;
+      String expectedChild3 = Child3Bean.class.getSimpleName() + "/local-" + child3BeanInterfaceName;
       String expectedNestedChild = NestedChildBean.class.getSimpleName() + "/local-" + nestedChildBeanInterfaceName;
 
       // Test
@@ -214,6 +225,7 @@ public class EjbReferenceResolverUnitTestCase
       TestCase.assertEquals(expectedChild1LocalHome, jndiNameChild1LocalHome);
       TestCase.assertEquals(expectedChild1RemoteHome, jndiNameChild1RemoteHome);
       TestCase.assertEquals(expectedChild2, jndiNameChild2);
+      TestCase.assertEquals(expectedChild3, jndiNameChild3);
       TestCase.assertEquals(expectedNestedChild, jndiNameNestedChild);
    }
 
@@ -269,6 +281,90 @@ public class EjbReferenceResolverUnitTestCase
       TestCase.assertEquals(expectedParentRemoteHome, jndiNameParentRemoteHome);
    }
 
+   /**
+    * Ensures that looking up by a non-unique beanInterface
+    * results in the expected exception 
+    * 
+    * @throws Throwable
+    */
+   @Test
+   public void testExceptionOnNonDeterministicInterfaceReference() throws Throwable
+   {
+      // Initialize
+      boolean exceptionReceived = false;
+      String commonBeanInterfaceName = Child1CommonBusiness.class.getName();
+
+      // Create reference
+      EjbReference commonReference = new EjbReference(null, commonBeanInterfaceName, null);
+
+      // Resolve
+      DeploymentUnit fromDu = parentDu;
+      try
+      {
+         resolver.resolveEjb(fromDu, commonReference);
+      }
+      // Expected
+      catch (NonDeterministicInterfaceException ndie)
+      {
+         exceptionReceived = true;
+         log.info("Got expected exception: " + ndie);
+      }
+
+      // Test
+      TestCase.assertTrue("Expected exception was not received", exceptionReceived);
+
+   }
+
+   /**
+    * Ensures that a NonDeterministicInterfaceException may be avoiding by specifying 
+    * beanName in the reference
+    * 
+    * @throws Throwable
+    */
+   @Test
+   public void testNonDeterministicExceptionAvoidedBySpecifyingBeanName() throws Throwable
+   {
+      // Initialize
+      String beanName = Child3Bean.class.getSimpleName();
+      String commonBeanInterfaceName = Child2And3CommonBusiness.class.getName();
+
+      // Create reference (to explicit bean)
+      EjbReference commonReference = new EjbReference(beanName, commonBeanInterfaceName, null);
+
+      // Resolve
+      DeploymentUnit fromDu = parentDu;
+      String jndiName = resolver.resolveEjb(fromDu, commonReference);
+
+      // Set expected
+      String expected = beanName + "/local-" + Child3LocalBusiness.class.getName();
+
+      // Test
+      TestCase.assertEquals(expected, jndiName);
+   }
+
+   /**
+    * Ensures that a reference honors mappedName above all else
+    * 
+    * @throws Throwable
+    */
+   @Test
+   public void testMappedNameOverridesAllElse() throws Throwable
+   {
+      // Create a reference
+      String mappedName = "ExplicitMappedName";
+      String beanName = "IgnoredBeanName";
+      String beanInterface = "IgnoredBeanInterface";
+      EjbReference reference = new EjbReference(beanName, beanInterface, mappedName);
+
+      // Resolve
+      String resolved = resolver.resolveEjb(parentDu, reference);
+
+      // Test
+      TestCase.assertEquals("Use of mapped-name in EJB Reference should override all other properties", mappedName,
+            resolved);
+
+   }
+
    // --------------------------------------------------------------------------------||
    // Lifecycle Methods --------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
@@ -290,6 +386,7 @@ public class EjbReferenceResolverUnitTestCase
       parentClasses.add(ParentBean.class);
       child1Classes.add(Child1Bean.class);
       child2Classes.add(Child2Bean.class);
+      child2Classes.add(Child3Bean.class); // Child2 DU has both Child2 and Child3 EJBs
       nestedChildClasses.add(NestedChildBean.class);
 
       // Make the metadata
@@ -343,9 +440,10 @@ public class EjbReferenceResolverUnitTestCase
    /**
     * A Mock DeploymentUnit with support to:
     * 
-    * - Add attachements
+    * - Add attachments
     * - Manage the parent/child relationship
     * - toString()
+    * - Get the ClassLoader
     */
    private static class MockDeploymentUnit extends AbstractDeploymentUnit implements DeploymentUnit
    {
@@ -428,6 +526,11 @@ public class EjbReferenceResolverUnitTestCase
          return this.getClass().getName() + ": " + this.name;
       }
 
+      @Override
+      public ClassLoader getClassLoader()
+      {
+         return Thread.currentThread().getContextClassLoader();
+      }
    }
 
 }

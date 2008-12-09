@@ -22,12 +22,12 @@
 package org.jboss.ejb3.test.common.resolvers;
 
 /**
- * Child1RemoteBusiness
+ * CommonBusiness
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public interface Child1RemoteBusiness extends Child1CommonBusiness
+public interface Child2And3CommonBusiness extends InterDuCommonBusiness
 {
 
 }

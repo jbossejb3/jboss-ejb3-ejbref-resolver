@@ -37,6 +37,13 @@ import org.jboss.metadata.ejb.jboss.JBossMetaData;
  * found.  In cases where the reference may be non-deterministic 
  * this implementation will stop when the reference requirements
  * are satisfied
+ * 
+ * NonDeterministicInterfaceException is therefore avoided 
+ * when a common interface is used across DeploymentUnits
+ * in the same DU Hierarchy; very simply the first DU
+ * which is able to resolve the reference (without conflicting 
+ * with possible references to other EJBs 
+ * within that DU) will be used.
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
@@ -55,18 +62,18 @@ public class FirstMatchEjbReferenceResolver extends EjbReferenceResolverBase imp
    {
       // Initialize
       String jndiName = null;
-      
+
       // Resolve from the root deployment
       DeploymentUnit root = this.getRoot(du);
       jndiName = this.resolveEjbFromRoot(root, reference);
-      
+
       // Check that we could resolve
-      if(jndiName==null)
+      if (jndiName == null)
       {
          throw new UnresolvableReferenceException("Could not resolve reference " + reference + " for "
                + DeploymentUnit.class.getSimpleName() + " " + du);
       }
-      
+
       // Return
       return jndiName;
    }
@@ -74,18 +81,6 @@ public class FirstMatchEjbReferenceResolver extends EjbReferenceResolverBase imp
    // --------------------------------------------------------------------------------||
    // Helper Methods -----------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
-
-   /**
-    * Obtains the root deployment unit 
-    * 
-    * @param du
-    * @return
-    */
-   protected DeploymentUnit getRoot(DeploymentUnit du)
-   {
-      // Recurse until we hit the root
-      return du.getParent() == null ? du : this.getRoot(du.getParent());
-   }
 
    /**
     * Follows a preorder traversal scheme to resolve the specified reference from the
@@ -107,7 +102,7 @@ public class FirstMatchEjbReferenceResolver extends EjbReferenceResolverBase imp
       if (metadata != null)
       {
          // Look for a match within this metadata
-         jndiName = this.getMatch(reference, metadata);
+         jndiName = this.getMatch(reference, metadata, rootDu.getClassLoader());
       }
 
       // If we haven't found the JNDI name in this DU

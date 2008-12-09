@@ -27,7 +27,7 @@ package org.jboss.ejb3.test.common.resolvers;
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public interface Child2LocalBusiness
+public interface Child2LocalBusiness extends Child2And3CommonBusiness
 {
 
 }

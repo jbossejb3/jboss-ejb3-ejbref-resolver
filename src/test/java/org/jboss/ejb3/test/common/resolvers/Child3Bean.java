@@ -21,13 +21,18 @@
  */
 package org.jboss.ejb3.test.common.resolvers;
 
+import javax.ejb.Local;
+import javax.ejb.Stateless;
+
 /**
- * Child1RemoteBusiness
+ * Child3Bean
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public interface Child1RemoteBusiness extends Child1CommonBusiness
+@Stateless
+@Local(Child3LocalBusiness.class)
+public class Child3Bean
 {
 
 }

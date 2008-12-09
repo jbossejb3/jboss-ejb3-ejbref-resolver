@@ -22,12 +22,15 @@
 package org.jboss.ejb3.test.common.resolvers;
 
 /**
- * Child1RemoteBusiness
+ * InterDuCommonBusiness
+ * 
+ * A common business interface which is used across 
+ * many DeploymentUnits
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public interface Child1RemoteBusiness extends Child1CommonBusiness
+public interface InterDuCommonBusiness
 {
 
 }
