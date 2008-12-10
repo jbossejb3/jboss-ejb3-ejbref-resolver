@@ -37,4 +37,13 @@ public interface HandleFactory
     * @return context's handle
     */
    Handle createHandle(ControllerContext context);
+
+   /**
+    * Create handle for an alias.
+    *
+    * @param context the context
+    * @param alias the context's alias
+    * @return contgext's handle
+    */
+   Handle createHandle(ControllerContext context, Object alias);
 }

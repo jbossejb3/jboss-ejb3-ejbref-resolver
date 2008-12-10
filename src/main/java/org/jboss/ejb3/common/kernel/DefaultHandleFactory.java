@@ -22,6 +22,8 @@
 package org.jboss.ejb3.common.kernel;
 
 import org.jboss.dependency.spi.ControllerContext;
+import org.jboss.dependency.spi.ScopeInfo;
+import org.jboss.metadata.spi.scope.ScopeKey;
 
 /**
  * The default handle factory.
@@ -48,11 +50,21 @@ public class DefaultHandleFactory implements HandleFactory
 
    public Handle createHandle(ControllerContext context)
    {
+      return createHandle(context, context.getName());
+   }
+
+   public Handle createHandle(ControllerContext context, Object alias)
+   {
       if (context == null)
          throw new IllegalArgumentException("Null context");
+      if (alias == null)
+         throw new IllegalArgumentException("Null alias");
 
-      // TODO - check scoped context
+      ScopeInfo scopeInfo = context.getScopeInfo();
+      ScopeKey scopeKey = scopeInfo.getInstallScope();
+      if (scopeKey != null)
+         return new ScopeKeyHandle(scopeKey, alias);
 
-      return new UniqueNameHandle(context.getName());
+      return new UniqueNameHandle(alias);
    }
 }

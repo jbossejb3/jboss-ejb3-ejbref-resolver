@@ -26,7 +26,7 @@ import java.io.Serializable;
 import org.jboss.kernel.Kernel;
 
 /**
- * The MC bean handle.
+ * The serializable MC bean handle.
  *
  * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
  */
