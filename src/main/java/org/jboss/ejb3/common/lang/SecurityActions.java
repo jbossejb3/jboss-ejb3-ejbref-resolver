@@ -42,5 +42,16 @@ class SecurityActions
          }
       });
    }
+   
+   static ClassLoader getThreadContextClassLoader()
+   {
+      return AccessController.doPrivileged(new PrivilegedAction<ClassLoader>()
+      {
+         public ClassLoader run()
+         {
+            return Thread.currentThread().getContextClassLoader();
+         }
+      });
+   }
 
 }

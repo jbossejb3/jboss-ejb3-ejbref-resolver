@@ -21,7 +21,7 @@
   </description>
   <url>http://www.jboss.org/jbossejb3/</url>
   
-    <!-- Build Configuration -->
+  <!-- Build Configuration -->
   <build>
 
     <plugins>

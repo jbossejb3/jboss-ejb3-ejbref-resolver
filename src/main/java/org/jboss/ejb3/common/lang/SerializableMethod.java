@@ -216,7 +216,7 @@ public class SerializableMethod implements Serializable
     */
    public Method toMethod()
    {
-      return this.toMethod(Thread.currentThread().getContextClassLoader());
+      return this.toMethod(SecurityActions.getThreadContextClassLoader());
    }
 
    /**
