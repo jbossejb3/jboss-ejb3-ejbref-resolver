@@ -60,8 +60,8 @@ public class EjbReferenceResolverFactory
          Class<?> implClass = Class.forName(implementationClassName);
 
          // Ensure we've got a type match
-         assert implClass.equals(EjbReferenceResolver.class) : "Specified implementation " + implementationClassName
-               + " is not a valid " + EjbReferenceResolver.class.getName();
+         assert EjbReferenceResolver.class.isAssignableFrom(implClass) : "Specified implementation "
+               + implementationClassName + " is not a valid " + EjbReferenceResolver.class.getName();
 
          // Make a new instance, cast and return it
          return (EjbReferenceResolver) implClass.newInstance();
