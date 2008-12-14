@@ -341,7 +341,7 @@ public class SerializableMethod implements Serializable
 
       try
       {
-         clazz = cl.loadClass(name);
+         clazz = Class.forName(name, false, cl);
       }
       catch (ClassNotFoundException cnfe)
       {
