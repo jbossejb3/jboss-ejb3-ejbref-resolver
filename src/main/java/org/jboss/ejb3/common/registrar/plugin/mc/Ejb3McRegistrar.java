@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.jboss.beans.info.spi.BeanAccessMode;
 import org.jboss.beans.metadata.spi.builder.BeanMetaDataBuilder;
 import org.jboss.dependency.spi.ControllerContext;
 import org.jboss.dependency.spi.ControllerState;
@@ -383,6 +384,9 @@ public class Ejb3McRegistrar implements Ejb3Registrar
    {
       // Construct BMDB
       BeanMetaDataBuilder bmdb = BeanMetaDataBuilder.createBuilder(name.toString(), value.getClass().getName());
+      
+      // Set access mode
+      bmdb.setAccessMode(BeanAccessMode.ALL);
 
       // Install into MC
       try
