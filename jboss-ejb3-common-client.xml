@@ -16,6 +16,7 @@
       <directory>target/classes</directory>
       <outputDirectory></outputDirectory>
       <includes>
+        <include>org/jboss/ejb3/common/classloader/PrimitiveAwareClassLoader.class</include>
         <include>org/jboss/ejb3/common/lang/SerializableMethod.class</include>
         <include>org/jboss/ejb3/common/lang/SecurityActions*.class</include>
         <include>org/jboss/ejb3/common/proxy/**</include>
