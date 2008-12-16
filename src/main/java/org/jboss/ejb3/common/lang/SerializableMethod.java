@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.jboss.ejb3.common.classloader.PrimitiveAwareClassLoader;
 import org.jboss.logging.Logger;
 
 /**
@@ -295,53 +296,15 @@ public class SerializableMethod implements Serializable
    {
       // Perform assertions
       assert cl != null : ClassLoader.class.getSimpleName() + " must be defined.";
-
-      /*
-       * Handle Primitives
-       */
-      if (name.equals(void.class.getName()))
-      {
-         return void.class;
-      }
-      if (name.equals(byte.class.getName()))
-      {
-         return byte.class;
-      }
-      if (name.equals(short.class.getName()))
-      {
-         return short.class;
-      }
-      if (name.equals(int.class.getName()))
-      {
-         return int.class;
-      }
-      if (name.equals(long.class.getName()))
-      {
-         return long.class;
-      }
-      if (name.equals(char.class.getName()))
-      {
-         return char.class;
-      }
-      if (name.equals(boolean.class.getName()))
-      {
-         return boolean.class;
-      }
-      if (name.equals(float.class.getName()))
-      {
-         return float.class;
-      }
-      if (name.equals(double.class.getName()))
-      {
-         return double.class;
-      }
+      
 
       // Load the Class described by the Method
       Class<?> clazz = null;
 
       try
       {
-         clazz = Class.forName(name, false, cl);
+         // use the PrimitiveAwareClassLoader to avoid any primitive check here, in this method.
+         clazz = new PrimitiveAwareClassLoader(cl).loadClass(name);
       }
       catch (ClassNotFoundException cnfe)
       {
