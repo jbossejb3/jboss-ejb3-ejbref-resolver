@@ -159,4 +159,32 @@ public class MyClass
       return m;
    }
 
+   /**
+    * 
+    * @param ints
+    */
+   public void methodWithPrimitiveVarArgsAndReturningVoid(int... ints)
+   {
+      // do nothing
+   }
+
+   /**
+    * 
+    * @param integers
+    */
+   public void methodWithVarArgsAndReturningVoid(Integer... integers)
+   {
+      // do nothing
+   }
+
+   /**
+    * 
+    * @param someString
+    * @param objects
+    */
+   public void methodWithVarArgsAndNormalArg(String someString, Object... objects)
+   {
+      // do nothing
+   }
+
 }

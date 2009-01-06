@@ -585,7 +585,7 @@ public class SerializableMethodTestCase
             copyOfMethod.hashCode());
 
       // test toString
-      assertEquals("Roundtrip of inherited method toString failed",copyOfMethodToString, methodToString);
+      assertEquals("Roundtrip of inherited method toString failed", copyOfMethodToString, methodToString);
 
       logger.info("Completed testing the toMethod(Classloader)");
 
@@ -626,7 +626,7 @@ public class SerializableMethodTestCase
 
       logger.info("Completed testing toMethod() with serialization");
    }
-   
+
    /**
     * Test to ensure that when no actual class is specified,
     * this field is automatically populated to the value of the declaring
@@ -638,19 +638,91 @@ public class SerializableMethodTestCase
    public void testDeclaringClassDefaultsWhenNoActualClassSpecified() throws Throwable
    {
       // Obtain a method
-      Method method = Object.class.getMethod("toString", new Class<?>[]{});
-      
+      Method method = Object.class.getMethod("toString", new Class<?>[]
+      {});
+
       // Create a Serializable View, without noting an actual class
       SerializableMethod sm = new SerializableMethod(method);
-      
+
       // Get the actual and declaring class names
       String declaringClassName = sm.getDeclaringClassName();
       String actualClassName = sm.getActualClassName();
-      
+
       // Ensure they're equal
       assertEquals("When no actual class is specified, should default to the declaring class", declaringClassName,
             actualClassName);
-      
+
    }
-   
+
+   /**
+    * Test to ensure that the {@link SerializableMethod#toMethod()} works as expected 
+    * when varargs are involved.
+    * 
+    * @throws Throwable
+    */
+   @Test
+   public void testToMethodForVarArgs() throws Throwable
+   {
+
+      logger.info("Testing the toMethod(), for methods accepting primitive varargs");
+
+      // Get the primitive vararg method
+      Method primitiveVarArgMethod = myClass.getClass().getMethod("methodWithPrimitiveVarArgsAndReturningVoid",
+            new Class<?>[]
+            {int[].class});
+
+      // Create SerializableMethod
+      SerializableMethod serializableMethodForPrimitiveVarArgMethod = new SerializableMethod(primitiveVarArgMethod);
+
+      // Call toMethod
+      Method returnedMethod = serializableMethodForPrimitiveVarArgMethod.toMethod();
+      
+      //test equals
+      assertTrue("Failure - The method returned by toMethod() of SerializableMethod is not equal to the original method", returnedMethod.equals(primitiveVarArgMethod));
+
+      // test hashCode
+      assertEquals("Failure - The method returned by toMethod() has a different hashCode than the original method", returnedMethod.hashCode(), primitiveVarArgMethod.hashCode());
+
+      logger.info("Completed testing the toMethod(), for methods accepting primitive varargs");
+      
+      logger.info("Testing the toMethod(), for methods accepting non-primitive varargs");
+      // Get method for non-primitive vararg
+      Method nonPrimitiveVarArgMethod = myClass.getClass().getMethod("methodWithVarArgsAndReturningVoid", new Class<?>[]{Integer[].class});
+      
+      // Create a serializablemethod out of it
+      SerializableMethod serializableMethodForNonPrimitiveVarArg = new SerializableMethod(nonPrimitiveVarArgMethod);
+      
+      // Call toMethod
+      Method returnedMethodForNonPrimitiveVarArg = serializableMethodForNonPrimitiveVarArg.toMethod();
+      
+      // test equals
+      assertTrue("Failure - The method returned by toMethod() of SerializableMethod is not equal to the original method", returnedMethodForNonPrimitiveVarArg.equals(nonPrimitiveVarArgMethod));
+
+      // test hashCode
+      assertEquals("Failure - The method returned by toMethod() has a different hashCode than the original method", returnedMethodForNonPrimitiveVarArg.hashCode(), nonPrimitiveVarArgMethod.hashCode());
+
+      logger.info("Completed testing the toMethod(), for methods accepting non-primitive varargs");
+      
+      
+      logger.info("Testing the toMethod(), for methods accepting a normal arg and a vararg");
+      // Get the method
+      Method mixedVarArgMethod = myClass.getClass().getMethod("methodWithVarArgsAndNormalArg", new Class<?>[]{String.class,Object[].class});
+      
+      // Create a serializablemethod out of it
+      SerializableMethod serializableMethodForMixedVarArgMethod = new SerializableMethod(mixedVarArgMethod);
+      
+      // Call toMethod
+      Method returnedMethodForMixedVarArgMethod = serializableMethodForMixedVarArgMethod.toMethod();
+      
+      // test equals
+      assertTrue("Failure - The method returned by toMethod() of SerializableMethod is not equal to the original method", returnedMethodForMixedVarArgMethod.equals(mixedVarArgMethod));
+
+      // test hashCode
+      assertEquals("Failure - The method returned by toMethod() has a different hashCode than the original method", returnedMethodForMixedVarArgMethod.hashCode(), mixedVarArgMethod.hashCode());
+
+      logger.info("Completed testing the toMethod(), for methods accepting a normal arg and a vararg");
+
+
+   }
+
 }
