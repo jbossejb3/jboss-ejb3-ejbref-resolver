@@ -87,14 +87,13 @@ public class Ejb3DeployerUtils
          // Get the associated DU
          DeploymentUnit du = mds.getDeploymentUnit(d.getName());
 
-         // Ensure it's an EJB3 DU (by looking for the processed metadata)
-         if (du.getAttachment(AttachmentNames.PROCESSED_METADATA, JBossMetaData.class) == null)
+         // Ensure it's an EJB3 DU (by looking for the metadata)
+         JBossMetaData metadata = du.getAttachment(JBossMetaData.class);
+         if (metadata != null && metadata.isEJB3x())
          {
-            continue;
+            // Add to the set
+            deploymentUnits.add(du);
          }
-
-         // Add to the set
-         deploymentUnits.add(du);
       }
 
       // Return
