@@ -91,7 +91,7 @@ public class AsyncUtils
       Class<?>[] asyncInterfaces = new Class<?>[]
       {AsyncProvider.class};
 
-      // Define Procesors to use in the chain
+      // Define Processors to use in the chain
       ChainableProcessor processor = new AsyncProcessor();
 
       // Create a ChainedProcessing handler

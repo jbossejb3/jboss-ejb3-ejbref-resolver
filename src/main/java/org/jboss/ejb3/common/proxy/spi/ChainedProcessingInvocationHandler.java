@@ -116,7 +116,6 @@ public class ChainedProcessingInvocationHandler implements InvocationHandler
       // More handlers are present in the chain
       else
       {
-         System.out.println("*");
          // Invoke upon the next handler in the chain
          returnValue = this.getHandlerChain()[this.nextHandlerIndex++].invoke(this, proxy, method, args);
       }
