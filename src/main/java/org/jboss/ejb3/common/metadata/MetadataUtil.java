@@ -31,8 +31,10 @@ import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeanMetaData;
 import org.jboss.metadata.ejb.jboss.JBossEnterpriseBeansMetaData;
 import org.jboss.metadata.ejb.jboss.JBossEntityBeanMetaData;
 import org.jboss.metadata.ejb.jboss.JBossMetaData;
+import org.jboss.metadata.ejb.jboss.JBossServiceBeanMetaData;
 import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
 import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.BasicJndiBindingPolicy;
+import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.JBossServicePolicyDecorator;
 import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.JBossSessionPolicyDecorator;
 import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.JbossEntityPolicyDecorator;
 import org.jboss.metadata.ejb.jboss.jndipolicy.spi.DefaultJndiBindingPolicy;
@@ -182,8 +184,8 @@ public class MetadataUtil
          // Obtain a Policy
          DefaultJndiBindingPolicy policy = getJndiBindingPolicy(bean, mdJndiPolicyName, cl);
 
-         // If this is a Session or Service Bean
-         if (bean.isSession() || bean.isService())
+         // If this is a Session Spec Bean (SLSB or SFSB)
+         if (bean.isSession() && !bean.isService())
          {
             // Cast
             assert bean instanceof JBossSessionBeanMetaData : JBossEnterpriseBeanMetaData.class.getSimpleName()
@@ -191,7 +193,19 @@ public class MetadataUtil
             JBossSessionBeanMetaData sessionBean = (JBossSessionBeanMetaData) bean;
 
             // Create a Session JNDI Policy Decorated Bean
-            decoratedBean = new JBossSessionPolicyDecorator(sessionBean, policy);
+            decoratedBean = new JBossSessionPolicyDecorator<JBossSessionBeanMetaData>(sessionBean, policy);
+         }
+
+         // If this is a @Service Bean
+         if (bean.isService())
+         {
+            // Cast
+            assert bean instanceof JBossServiceBeanMetaData : JBossEnterpriseBeanMetaData.class.getSimpleName()
+                  + " representing as @Service Bean is not castable to " + JBossServiceBeanMetaData.class.getName();
+            JBossServiceBeanMetaData serviceBean = (JBossServiceBeanMetaData) bean;
+
+            // Create a @Service JNDI Policy Decorated Bean
+            decoratedBean = new JBossServicePolicyDecorator(serviceBean, policy);
          }
 
          // If this is an Entity Bean
