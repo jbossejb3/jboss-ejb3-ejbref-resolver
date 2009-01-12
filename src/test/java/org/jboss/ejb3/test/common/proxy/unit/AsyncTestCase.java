@@ -32,6 +32,7 @@ import junit.framework.TestCase;
 import org.jboss.ejb3.common.proxy.plugins.async.AsyncUtils;
 import org.jboss.ejb3.test.common.proxy.Addable;
 import org.jboss.ejb3.test.common.proxy.CalculatorServiceBean;
+import org.jboss.ejb3.test.common.proxy.MultiMethod;
 import org.jboss.logging.Logger;
 import org.junit.Test;
 
@@ -113,6 +114,45 @@ public class AsyncTestCase
          Throwable cause = e.getCause();
          assertEquals(RuntimeException.class, cause.getClass());
          assertEquals("Failed predictably", cause.getMessage());
+      }
+   }
+   
+   @Test
+   public void testMultiMethod() throws Exception
+   {
+      MultiMethod bean = new MultiMethod() {
+         public String method1(int i)
+         {
+            return "1:" + i;
+         }
+
+         public String method2(int i)
+         {
+            return "2:" + i;
+         }
+      };
+      
+      MultiMethod asyncBean = AsyncUtils.mixinAsync(bean);
+      
+      {
+         asyncBean.method1(3);
+         
+         Future<?> futureResult = AsyncUtils.getFutureResult(asyncBean);
+         
+         String actual = (String) futureResult.get(2, TimeUnit.SECONDS);
+         
+         assertEquals("1:3", actual);
+      }
+      
+      // invoke another async method on the same reference
+      {
+         asyncBean.method2(4);
+         
+         Future<?> futureResult = AsyncUtils.getFutureResult(asyncBean);
+         
+         String actual = (String) futureResult.get(2, TimeUnit.SECONDS);
+         
+         assertEquals("2:4", actual);
       }
    }
    

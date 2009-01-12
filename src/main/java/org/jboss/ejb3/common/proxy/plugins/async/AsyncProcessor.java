@@ -78,6 +78,9 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
       // Are we trying to get the future result?
       if (this.isGetFutureResultInvocation(method))
       {
+         // FIXME: stop-gap solution. We have a return value, stop moving forward.
+         chain.reset();
+         
          // Return the future result
          return this.getFutureResult();
       }

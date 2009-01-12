@@ -117,7 +117,10 @@ public class ChainedProcessingInvocationHandler implements InvocationHandler
       else
       {
          // Invoke upon the next handler in the chain
-         returnValue = this.getHandlerChain()[this.nextHandlerIndex++].invoke(this, proxy, method, args);
+         // FIXME: This is just a stop-gap solution for the broken ChainedProcessingInvocationHandler construct
+         int currentHandlerIndex = this.nextHandlerIndex;
+         this.nextHandlerIndex++;
+         returnValue = this.getHandlerChain()[currentHandlerIndex].invoke(this, proxy, method, args);
       }
 
       // Return
