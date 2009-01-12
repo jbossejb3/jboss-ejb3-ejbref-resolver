@@ -30,6 +30,7 @@ import java.util.concurrent.Future;
 
 import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
 import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
+import org.jboss.security.SecurityContext;
 
 /**
  * AsyncProcessor
@@ -88,8 +89,10 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
       // Get the delegate
       Object delegate = chain.getDelegate();
 
+      SecurityContext sc = SecurityActions.getSecurityContext();
+      
       // Construct the async call
-      Callable<Object> asyncInvocation = new AsyncTask(delegate, method, args);
+      Callable<Object> asyncInvocation = new AsyncTask(delegate, method, args, sc);
 
       // Invoke as async
       Future<Object> asyncResult = EXECUTOR.submit(asyncInvocation);
@@ -151,18 +154,28 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
 
       private Object args[];
 
-      public AsyncTask(Object proxy, Method method, Object[] args)
+      /** Optional security context */
+      private SecurityContext sc;
+      
+      public AsyncTask(Object proxy, Method method, Object[] args, SecurityContext sc)
       {
          this.proxy = proxy;
          this.method = method;
          this.args = args;
+         this.sc = sc;
       }
 
       public Object call() throws Exception
       {
          // Invoke upon the proxy
+         SecurityContext prevSC = null;
          try
          {
+            if(sc != null)
+            {
+               prevSC = SecurityActions.getSecurityContext();
+               SecurityActions.setSecurityContext(sc);
+            }
             return method.invoke(proxy, args);
          }
          catch(InvocationTargetException e)
@@ -175,6 +188,11 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
          catch (Throwable t)
          {
             throw new Exception("Exception encountered in Asynchronous Invocation", t);
+         }
+         finally
+         {
+            if(sc != null)
+               SecurityActions.setSecurityContext(prevSC);
          }
       }
    }
