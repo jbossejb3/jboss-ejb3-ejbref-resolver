@@ -21,6 +21,7 @@
  */
 package org.jboss.ejb3.common.proxy.plugins.async;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -160,6 +161,13 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
          try
          {
             return method.invoke(proxy, args);
+         }
+         catch(InvocationTargetException e)
+         {
+            Throwable cause = e.getCause();
+            if(cause instanceof Exception)
+               throw (Exception) cause;
+            throw e;
          }
          catch (Throwable t)
          {

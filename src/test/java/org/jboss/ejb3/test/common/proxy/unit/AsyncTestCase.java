@@ -21,6 +21,9 @@
  */
 package org.jboss.ejb3.test.common.proxy.unit;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -85,6 +88,34 @@ public class AsyncTestCase
 
    }
 
+   @Test
+   public void testException() throws Exception
+   {
+      Addable failingBean = new Addable() {
+         public int add(int... args)
+         {
+            throw new RuntimeException("Failed predictably");
+         }
+      };
+      
+      Addable asyncFailingBean = AsyncUtils.mixinAsync(failingBean);
+      
+      asyncFailingBean.add(1, 2, 3);
+      
+      Future<?> futureResult = AsyncUtils.getFutureResult(asyncFailingBean);
+      
+      try
+      {
+         futureResult.get(2, TimeUnit.SECONDS);
+      }
+      catch(ExecutionException e)
+      {
+         Throwable cause = e.getCause();
+         assertEquals(RuntimeException.class, cause.getClass());
+         assertEquals("Failed predictably", cause.getMessage());
+      }
+   }
+   
    // --------------------------------------------------------------------------------||
    // Internal Helper Methods --------------------------------------------------------||
    // --------------------------------------------------------------------------------||
