@@ -64,7 +64,7 @@ public class FirstMatchEjbReferenceResolver extends EjbReferenceResolverBase imp
       String jndiName = null;
 
       // Resolve from the root deployment
-      DeploymentUnit root = this.getRoot(du);
+      DeploymentUnit root = du.getTopLevel();
       jndiName = this.resolveEjbFromRoot(root, reference);
 
       // Check that we could resolve
