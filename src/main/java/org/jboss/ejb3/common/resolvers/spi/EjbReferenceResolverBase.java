@@ -388,4 +388,16 @@ public abstract class EjbReferenceResolverBase
 
    }
 
+   /**
+    * Obtains the root deployment unit 
+    * 
+    * @param du
+    * @return
+    */
+   protected DeploymentUnit getRoot(DeploymentUnit du)
+   {
+      // Recurse until we hit the root
+      return du.getParent() == null ? du : this.getRoot(du.getParent());
+   }
+
 }
