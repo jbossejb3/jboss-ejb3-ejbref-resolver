@@ -531,6 +531,20 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
       {
          return Thread.currentThread().getContextClassLoader();
       }
+      
+      @Override
+      public DeploymentUnit getTopLevel()
+      {
+         // if this is the top most level, then it won't have a parent,
+         // so return this deployment unit as the top most deployment unit
+         if (parent == null)
+         {
+            return this;
+         }
+         // this is not the top most level, so let's go to parent and 
+         // keep traversing till the top most level
+         return parent.getTopLevel();
+      }
    }
 
 }
