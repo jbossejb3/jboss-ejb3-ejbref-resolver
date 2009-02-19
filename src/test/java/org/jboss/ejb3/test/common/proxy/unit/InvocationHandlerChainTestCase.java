@@ -23,15 +23,15 @@ package org.jboss.ejb3.test.common.proxy.unit;
 
 import junit.framework.TestCase;
 
-import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
-import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
+import org.jboss.aop.advice.Interceptor;
+import org.jboss.ejb3.common.proxy.spi.InterceptorChainInvocationHandler;
 import org.jboss.ejb3.common.proxy.spi.ProxyUtils;
-import org.jboss.ejb3.test.common.proxy.AddOneProcessor;
+import org.jboss.ejb3.test.common.proxy.AddOneInterceptor;
 import org.jboss.ejb3.test.common.proxy.Addable;
 import org.jboss.ejb3.test.common.proxy.CalculatorServiceBean;
-import org.jboss.ejb3.test.common.proxy.ChangeInputProcessor;
+import org.jboss.ejb3.test.common.proxy.ChangeInputInterceptor;
 import org.jboss.ejb3.test.common.proxy.Multipliable;
-import org.jboss.ejb3.test.common.proxy.MultiplyMixinProcessor;
+import org.jboss.ejb3.test.common.proxy.MultiplyMixinInterceptor;
 import org.jboss.logging.Logger;
 import org.junit.Test;
 
@@ -90,12 +90,15 @@ public class InvocationHandlerChainTestCase
       int[] args =
       {1, 2, 3};
 
-      // Make the chain
-      ChainedProcessingInvocationHandler chain = new ChainedProcessingInvocationHandler(calc, new ChainableProcessor[]
-      {new AddOneProcessor()});
+      // Define the chain
+      Interceptor[] interceptorChain = new Interceptor[]
+      {new AddOneInterceptor()};
+
+      // Make the handler
+      InterceptorChainInvocationHandler handler = new InterceptorChainInvocationHandler(interceptorChain, calc);
 
       // Apply the chain
-      Addable newCalc = (Addable) ProxyUtils.mixinProxy(calc, null, chain);
+      Addable newCalc = (Addable) ProxyUtils.mixinProxy(calc, handler);
 
       // Get the result from the service
       int result = newCalc.add(args);
@@ -121,12 +124,15 @@ public class InvocationHandlerChainTestCase
       int[] args =
       {1, 2, 3};
 
-      // Make the chain
-      ChainedProcessingInvocationHandler chain = new ChainedProcessingInvocationHandler(calc, new ChainableProcessor[]
-      {new AddOneProcessor()});
+      // Define the chain
+      Interceptor[] interceptorChain = new Interceptor[]
+      {new AddOneInterceptor()};
+
+      // Make the handler
+      InterceptorChainInvocationHandler handler = new InterceptorChainInvocationHandler(interceptorChain, calc);
 
       // Apply the chain
-      Addable newCalc = (Addable) ProxyUtils.mixinProxy(calc, null, chain);
+      Addable newCalc = (Addable) ProxyUtils.mixinProxy(calc, handler);
 
       // Get the result from the service
       int result1 = newCalc.add(args);
@@ -156,12 +162,15 @@ public class InvocationHandlerChainTestCase
       int[] overrideArgs =
       {5, 10};
 
-      // Make the chain
-      ChainedProcessingInvocationHandler chain = new ChainedProcessingInvocationHandler(calc, new ChainableProcessor[]
-      {new ChangeInputProcessor(overrideArgs), new AddOneProcessor()});
+      // Define the chain
+      Interceptor[] interceptorChain = new Interceptor[]
+      {new ChangeInputInterceptor(overrideArgs), new AddOneInterceptor()};
+
+      // Make the handler
+      InterceptorChainInvocationHandler handler = new InterceptorChainInvocationHandler(interceptorChain, calc);
 
       // Mix it up
-      Addable newCalc = (Addable) ProxyUtils.mixinProxy(calc, null, chain);
+      Addable newCalc = (Addable) ProxyUtils.mixinProxy(calc, handler);
 
       // Get the result from the service
       int result = newCalc.add(args);
@@ -186,13 +195,16 @@ public class InvocationHandlerChainTestCase
       int[] args =
       {4, 7, 2};
 
-      // Make the chain
-      ChainedProcessingInvocationHandler chain = new ChainedProcessingInvocationHandler(calc, new ChainableProcessor[]
-      {new MultiplyMixinProcessor()});
+      // Define the chain
+      Interceptor[] interceptorChain = new Interceptor[]
+      {new MultiplyMixinInterceptor()};
+
+      // Make the handler
+      InterceptorChainInvocationHandler handler = new InterceptorChainInvocationHandler(interceptorChain, calc);
 
       // Mix it up
       Multipliable newCalc = (Multipliable) ProxyUtils.mixinProxy(calc, new Class<?>[]
-      {Multipliable.class}, chain);
+      {Multipliable.class}, handler);
 
       // Get the result from the service
       int result = newCalc.multiply(args);

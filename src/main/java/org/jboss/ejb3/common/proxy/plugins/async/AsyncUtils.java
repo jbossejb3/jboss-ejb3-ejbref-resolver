@@ -21,10 +21,11 @@
  */
 package org.jboss.ejb3.common.proxy.plugins.async;
 
+import java.lang.reflect.InvocationHandler;
 import java.util.concurrent.Future;
 
-import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
-import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
+import org.jboss.aop.advice.Interceptor;
+import org.jboss.ejb3.common.proxy.spi.InterceptorChainInvocationHandler;
 import org.jboss.ejb3.common.proxy.spi.ProxyUtils;
 import org.jboss.logging.Logger;
 
@@ -64,17 +65,17 @@ public class AsyncUtils
     * Obtains the Future result from the specified proxy, which 
     * must implement AsyncProvider
     */
-   public static Future<?> getFutureResult(Object proxy)
+   public static Future<?> getFutureResult(final Object proxy)
    {
       // Ensure we're given an asyncable proxy
       assert proxy instanceof AsyncProvider : "Specified proxy " + proxy + " was not an instance of "
             + AsyncProvider.class.getName();
 
       // Get the provider
-      AsyncProvider provider = (AsyncProvider) proxy;
+      final AsyncProvider provider = (AsyncProvider) proxy;
 
       // Get the future result
-      Future<?> futureResult = provider.getFutureResult();
+      final Future<?> futureResult = provider.getFutureResult();
 
       // Return
       return futureResult;
@@ -85,20 +86,21 @@ public class AsyncUtils
     * Makes the specified delegate object invoked as async, tacking on support to
     * obtain the async result
     */
-   public static <T> T mixinAsync(T delegate)
+   public static <T> T mixinAsync(final T delegate)
    {
       // Define async interfaces to add
-      Class<?>[] asyncInterfaces = new Class<?>[]
+      final Class<?>[] asyncInterfaces = new Class<?>[]
       {AsyncProvider.class};
 
-      // Define Processors to use in the chain
-      ChainableProcessor processor = new AsyncProcessor();
+      // Define interceptors to use in the chain
+      final Interceptor[] interceptorChain = new Interceptor[]
+      {new AsyncInterceptor()};
 
-      // Create a ChainedProcessing handler
-      ChainedProcessingInvocationHandler chain = new ChainedProcessingInvocationHandler(delegate, processor);
+      // Create a Proxy Handler
+      final InvocationHandler handler = new InterceptorChainInvocationHandler(interceptorChain, delegate);
 
       // Make the Proxy
-      T mixin = ProxyUtils.mixinProxy(delegate, asyncInterfaces, chain, delegate);
+      final T mixin = ProxyUtils.mixinProxy(delegate, asyncInterfaces, handler, delegate);
 
       // Return
       return mixin;

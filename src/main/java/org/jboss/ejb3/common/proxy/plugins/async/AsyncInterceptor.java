@@ -28,20 +28,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
-import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
+import org.jboss.aop.advice.Interceptor;
+import org.jboss.aop.joinpoint.Invocation;
+import org.jboss.aop.joinpoint.MethodInvocation;
 import org.jboss.security.SecurityContext;
 
 /**
- * AsyncProcessor
+ * AsyncInterceptor
  * 
- * A processor that invokes upon the chain in a separate Thread,
+ * An interceptor that invokes upon the chain in a separate Thread,
  * saving a reference to the Future result
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public class AsyncProcessor implements ChainableProcessor, AsyncProvider
+public class AsyncInterceptor implements Interceptor, AsyncProvider
 {
 
    // ------------------------------------------------------------------------------||
@@ -70,27 +71,34 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
    // Required Implementations -----------------------------------------------------||
    // ------------------------------------------------------------------------------||
 
-   /* (non-Javadoc)
-    * @see org.jboss.ejb3.proxy.intf.ChainableInvocationHandler#invoke(org.jboss.ejb3.proxy.handler.ChainInvocationHandler, java.lang.Object, java.lang.reflect.Method, java.lang.Object[])
-    */
-   public Object invoke(ChainedProcessingInvocationHandler chain, Object proxy, Method method, Object[] args)
-         throws Throwable
+   public String getName()
    {
+      return this.getClass().getName();
+   }
+
+   public Object invoke(Invocation invocation) throws Throwable
+   {
+      // Ensure we've got a method invocation
+      assert invocation instanceof MethodInvocation : this.getName() + " is applicable only for "
+            + MethodInvocation.class.getSimpleName() + ", instead got: " + invocation.getClass().getName();
+
+      // Get the method information
+      MethodInvocation methodInvocation = (MethodInvocation) invocation;
+      Method method = methodInvocation.getActualMethod();
+      Object[] args = methodInvocation.getArguments();
+
       // Are we trying to get the future result?
       if (this.isGetFutureResultInvocation(method))
       {
-         // FIXME: stop-gap solution. We have a return value, stop moving forward.
-         chain.reset();
-         
          // Return the future result
          return this.getFutureResult();
       }
 
       // Get the delegate
-      Object delegate = chain.getDelegate();
+      Object delegate = invocation.getTargetObject();
 
       SecurityContext sc = SecurityActions.getSecurityContext();
-      
+
       // Construct the async call
       Callable<Object> asyncInvocation = new AsyncTask(delegate, method, args, sc);
 
@@ -99,9 +107,6 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
 
       // Set the async result
       LAST_INVOKED_RESULT.set(asyncResult);
-
-      // Reset the chain so that it may be invoked again; we've forked here
-      chain.reset();
 
       // Return a null or 0 value; we've been spawned off
       return DummyReturnValues.getDummyReturnValue(method.getReturnType());
@@ -156,7 +161,7 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
 
       /** Optional security context */
       private SecurityContext sc;
-      
+
       public AsyncTask(Object proxy, Method method, Object[] args, SecurityContext sc)
       {
          this.proxy = proxy;
@@ -171,17 +176,17 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
          SecurityContext prevSC = null;
          try
          {
-            if(sc != null)
+            if (sc != null)
             {
                prevSC = SecurityActions.getSecurityContext();
                SecurityActions.setSecurityContext(sc);
             }
             return method.invoke(proxy, args);
          }
-         catch(InvocationTargetException e)
+         catch (InvocationTargetException e)
          {
             Throwable cause = e.getCause();
-            if(cause instanceof Exception)
+            if (cause instanceof Exception)
                throw (Exception) cause;
             throw e;
          }
@@ -191,7 +196,7 @@ public class AsyncProcessor implements ChainableProcessor, AsyncProvider
          }
          finally
          {
-            if(sc != null)
+            if (sc != null)
                SecurityActions.setSecurityContext(prevSC);
          }
       }

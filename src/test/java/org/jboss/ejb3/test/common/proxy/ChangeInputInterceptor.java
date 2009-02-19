@@ -21,36 +21,45 @@
  */
 package org.jboss.ejb3.test.common.proxy;
 
-import java.lang.reflect.Method;
-
-import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
-import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
+import org.jboss.aop.advice.Interceptor;
+import org.jboss.aop.joinpoint.Invocation;
+import org.jboss.aop.joinpoint.MethodInvocation;
 
 /**
- * AddOneProcessor
+ * ChangeInputInterceptor
  * 
- * A test ChainableProcessor which adds a value of 1
- * to the result
+ * A test ChainableProcessor which ignores the 
+ * specified input and replaces it with that specified
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public class AddOneProcessor implements ChainableProcessor
+public class ChangeInputInterceptor implements Interceptor
 {
-
-   /* (non-Javadoc)
-    * @see org.jboss.ejb3.proxy.intf.ChainableInvocationHandler#invoke(org.jboss.ejb3.proxy.handler.ChainInvocationHandler, java.lang.Object, java.lang.reflect.Method, java.lang.Object[])
+   /**
+    * Backing arguments to use
     */
-   public Object invoke(ChainedProcessingInvocationHandler chain, Object proxy, Method method, Object[] args) throws Throwable
+   private int[] args;
+
+   public ChangeInputInterceptor(int[] args)
    {
-      // Send along to the rest of the chain
-      Object result = chain.invokeNext(proxy, method, args);
-
-      // Add 1
-      int newValue = ((Integer) result) + 1;
-
-      // Return
-      return newValue;
+      this.args = args;
    }
 
+   public String getName()
+   {
+      return this.getClass().getName();
+   }
+
+   public Object invoke(Invocation invocation) throws Throwable
+   {
+
+      // Override the arguments
+      MethodInvocation methodInvocation = (MethodInvocation) invocation;
+      methodInvocation.setArguments(new Object[]
+      {args});
+
+      // Send along to the rest of the chain
+      return invocation.invokeNext();
+   }
 }

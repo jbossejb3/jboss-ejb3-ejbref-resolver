@@ -21,6 +21,7 @@
  */
 package org.jboss.ejb3.common.proxy.spi;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Set;
@@ -60,30 +61,39 @@ public class ProxyUtils
    // --------------------------------------------------------------------------------||
 
    /**
-    * Wraps the existing Proxy in a new Proxy to extend functionality, adding 
-    * support of the specified interfaces via the specified 
-    * ChainedProcessingInvocationHandler
-    * (which contains a chain of processors)
+    * Wraps the existing Proxy in a new Proxy to extend functionality, using 
+    * the specified InvocationHandler
     * 
     * May be used to, at runtime, extend a service
     */
-   public static Object mixinProxy(Object delegate, Class<?>[] additionalInterfaces,
-         ChainedProcessingInvocationHandler chain)
+   public static Object mixinProxy(final Object delegate, final InvocationHandler handler)
    {
-      return mixinProxy(delegate, additionalInterfaces, chain, Object.class);
+      return mixinProxy(delegate, null, handler);
    }
 
    /**
     * Wraps the existing Proxy in a new Proxy to extend functionality, adding 
     * support of the specified interfaces via the specified 
-    * ChainedProcessingInvocationHandler
-    * (which contains a chain of processors)
+    * InvocationHandler
+    * 
+    * May be used to, at runtime, extend a service
+    */
+   public static Object mixinProxy(final Object delegate, final Class<?>[] additionalInterfaces,
+         final InvocationHandler handler)
+   {
+      return mixinProxy(delegate, additionalInterfaces, handler, Object.class);
+   }
+
+   /**
+    * Wraps the existing Proxy in a new Proxy to extend functionality, adding 
+    * support of the specified interfaces via the specified 
+    * InvocationHandler
     * 
     * May be used to, at runtime, extend a service
     */
    @SuppressWarnings("unchecked")
-   public static <T> T mixinProxy(Object delegate, Class<?>[] additionalInterfaces,
-         ChainedProcessingInvocationHandler chain, T expectedType)
+   public static <T> T mixinProxy(final Object delegate, final Class<?>[] additionalInterfaces,
+         final InvocationHandler handler, final T expectedType)
    {
       // Initialize
       Set<Class<?>> newInterfaces = new HashSet<Class<?>>();
@@ -109,7 +119,7 @@ public class ProxyUtils
 
       // Make a new Proxy, using the Chain as the handler
       newProxy = Proxy.newProxyInstance(delegate.getClass().getClassLoader(), newInterfaces.toArray(new Class<?>[]
-      {}), chain);
+      {}), handler);
 
       // Return
       return (T) newProxy;

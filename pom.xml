@@ -68,6 +68,12 @@
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>
+    
+    <!-- org.jboss.aop:jboss-aop -->
+    <dependency>
+      <groupId>org.jboss.aop</groupId>
+      <artifactId>jboss-aop</artifactId>
+    </dependency>
 
     <!-- Logging -->
     <dependency>

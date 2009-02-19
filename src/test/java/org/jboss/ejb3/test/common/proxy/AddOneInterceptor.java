@@ -19,34 +19,38 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
-package org.jboss.ejb3.common.proxy.spi;
+package org.jboss.ejb3.test.common.proxy;
 
-import java.lang.reflect.Method;
-
+import org.jboss.aop.advice.Interceptor;
+import org.jboss.aop.joinpoint.Invocation;
 
 /**
- * ChainableInvocationHandler
+ * AddOneInterceptor
  * 
- * An InvocationHandler that is chain-aware.  May perform
- * its own processing before, after, or ignoring the rest of the 
- * InvocationHandlers in the chain of which it is a part
+ * A test Interceptor which adds a value of 1
+ * to the result
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public interface ChainableProcessor
+public class AddOneInterceptor implements Interceptor
 {
-   /**
-    * Invokes this handler with the specified arguments.  Processing
-    * may be performed before or after the rest of the chain depending 
-    * upon when "chain.invokeNext()" is executed.
-    * 
-    * @param chain
-    * @param proxy
-    * @param method
-    * @param args
-    * @exception Throwable
-    * @return
-    */
-   Object invoke(ChainedProcessingInvocationHandler chain, Object proxy, Method method, Object[] args) throws Throwable;
+
+   public String getName()
+   {
+      return this.getClass().getName();
+   }
+
+   public Object invoke(Invocation invocation) throws Throwable
+   {
+      // Send along to the rest of the chain
+      Object result = invocation.invokeNext();
+
+      // Add 1
+      int newValue = ((Integer) result) + 1;
+
+      // Return
+      return newValue;
+   }
+
 }

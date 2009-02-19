@@ -23,11 +23,12 @@ package org.jboss.ejb3.test.common.proxy;
 
 import java.lang.reflect.Method;
 
-import org.jboss.ejb3.common.proxy.spi.ChainableProcessor;
-import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
+import org.jboss.aop.advice.Interceptor;
+import org.jboss.aop.joinpoint.Invocation;
+import org.jboss.aop.joinpoint.MethodInvocation;
 
 /**
- * MultiplyMixinInvocationHandler
+ * MultiplyMixinInterceptor
  * 
  * A test ChainableInvocationHandler which ignores the 
  * specified input and replaces it with that specified
@@ -35,7 +36,7 @@ import org.jboss.ejb3.common.proxy.spi.ChainedProcessingInvocationHandler;
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public class MultiplyMixinProcessor implements ChainableProcessor, Multipliable
+public class MultiplyMixinInterceptor implements Interceptor, Multipliable
 {
 
    // ------------------------------------------------------------------------------||
@@ -63,14 +64,19 @@ public class MultiplyMixinProcessor implements ChainableProcessor, Multipliable
    // Required Implementations -----------------------------------------------------||
    // ------------------------------------------------------------------------------||
 
-   /* (non-Javadoc)
-    * @see org.jboss.ejb3.proxy.intf.ChainableInvocationHandler#invoke(org.jboss.ejb3.proxy.handler.ChainInvocationHandler, java.lang.Object, java.lang.reflect.Method, java.lang.Object[])
-    */
-   public Object invoke(ChainedProcessingInvocationHandler chain, Object proxy, Method method, Object[] args)
-         throws Throwable
+   public String getName()
    {
+      return this.getClass().getName();
+   }
+
+   public Object invoke(Invocation invocation) throws Throwable
+   {
+      // Get arguments
+      MethodInvocation methodInvocation = (MethodInvocation) invocation;
+      Object[] args = methodInvocation.getArguments();
+
       // Do we handle this invocation?
-      if (this.handlesInvocation(proxy, method, args))
+      if (this.handlesInvocation(methodInvocation))
       {
          // Invoke
          return new Integer(this.multiply((int[]) args[0]));
@@ -78,9 +84,8 @@ public class MultiplyMixinProcessor implements ChainableProcessor, Multipliable
       // We don't handle the invocation, send along the chain
       else
       {
-         return chain.invokeNext(proxy, method, args);
+         return invocation.invokeNext();
       }
-
    }
 
    /**
@@ -109,12 +114,13 @@ public class MultiplyMixinProcessor implements ChainableProcessor, Multipliable
    /**
     * Determines whether this processor may handle the invocation
     */
-   private boolean handlesInvocation(Object proxy, Method method, Object[] args)
+   private boolean handlesInvocation(MethodInvocation invocation)
    {
       /*
        * Determine if we'll handle this invocation
        */
-      if (method.equals(MULTIPLY_METHOD))
+
+      if (invocation.getActualMethod().equals(MULTIPLY_METHOD))
       {
          return true;
       }
