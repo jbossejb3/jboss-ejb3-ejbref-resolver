@@ -21,6 +21,7 @@
  */
 package org.jboss.ejb3.common.classloader;
 
+
 /**
  * PrimitiveAwareClassLoader
  *  
@@ -32,9 +33,17 @@ package org.jboss.ejb3.common.classloader;
  * {@link Class} corresponding to the primitive. For all other requests, it redirects
  * the request to the parent classloader.
  *
+ * @deprecated Do not use this "classloader" any more. Instead use the {@link PrimitiveClassLoadingUtil}
+ * utility to take care of centralized logic for primitive handling during classloading. See 
+ * https://jira.jboss.org/jira/browse/EJBTHREE-1910 for more details.
+ * 
+ *  @see PrimitiveClassLoadingUtil#loadClass(String, ClassLoader)
+ *  @see https://jira.jboss.org/jira/browse/EJBTHREE-1910
+ * 
  * @author Jaikiran Pai
  * @version $Revision: $
  */
+@Deprecated
 public class PrimitiveAwareClassLoader extends ClassLoader
 {
 
