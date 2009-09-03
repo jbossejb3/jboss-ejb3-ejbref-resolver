@@ -26,8 +26,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.jboss.ejb3.common.classloader.PrimitiveAwareClassLoader;
 import org.jboss.logging.Logger;
@@ -81,13 +79,6 @@ public class SerializableMethod implements Serializable
     * Array of fully-qualified class names of arguments, in order
     */
    private String[] argumentTypes;
-
-   /**
-    * Cache of methods to a proposed ClassLoader.  Used to 
-    * limit the underlying ClassLoader calls in {@link SerializableMethod#toMethod(ClassLoader)}.
-    * Must be a Thread-safe impl
-    */
-   private transient Map<ClassLoader, Method> methodCache;
 
    // ------------------------------------------------------------------------------||
    // Constructors -----------------------------------------------------------------||
@@ -238,23 +229,6 @@ public class SerializableMethod implements Serializable
     */
    public Method toMethod(ClassLoader cl)
    {
-      // Get Cache
-      Map<ClassLoader, Method> cache = this.getMethodCache();
-      if (cache == null)
-      {
-         this.setMethodCache(new ConcurrentHashMap<ClassLoader, Method>());
-         cache = this.getMethodCache();
-      }
-
-      // Obtain from cache
-      final Method method = cache.get(cl);
-
-      // If found, return it
-      if (method != null)
-      {
-         return method;
-      }
-
       // Load the Class described by the Method
       Class<?> invokingClass = this.getClassType(cl);
 
@@ -279,9 +253,6 @@ public class SerializableMethod implements Serializable
       {
          throw new RuntimeException("Method " + this + " does not exist in " + invokingClass.getName(), nsme);
       }
-
-      // Add method to the cache
-      cache.put(cl, invokedMethod);
 
       // Return
       return invokedMethod;
@@ -325,6 +296,7 @@ public class SerializableMethod implements Serializable
    {
       // Perform assertions
       assert cl != null : ClassLoader.class.getSimpleName() + " must be defined.";
+      
 
       // Load the Class described by the Method
       Class<?> clazz = null;
@@ -405,22 +377,6 @@ public class SerializableMethod implements Serializable
                + declaringClassName);
       }
       this.actualClassName = actualClassName;
-   }
-
-   /**
-    * @return the methodCache
-    */
-   private Map<ClassLoader, Method> getMethodCache()
-   {
-      return methodCache;
-   }
-
-   /**
-    * @param methodCache the methodCache to set
-    */
-   private void setMethodCache(Map<ClassLoader, Method> methodCache)
-   {
-      this.methodCache = methodCache;
    }
 
 }
