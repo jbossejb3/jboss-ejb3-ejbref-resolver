@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.jboss.ejb3.common.classloader.PrimitiveAwareClassLoader;
+import org.jboss.ejb3.common.classloader.util.PrimitiveClassLoadingUtil;
 import org.jboss.logging.Logger;
 
 /**
@@ -303,8 +303,8 @@ public class SerializableMethod implements Serializable
 
       try
       {
-         // use the PrimitiveAwareClassLoader to avoid any primitive check here, in this method.
-         clazz = new PrimitiveAwareClassLoader(cl).loadClass(name);
+         // use the PrimitiveClassLoadingUtil to avoid any primitive checks here, in this method.
+         clazz = PrimitiveClassLoadingUtil.loadClass(name, cl);
       }
       catch (ClassNotFoundException cnfe)
       {
