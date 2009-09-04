@@ -38,8 +38,11 @@ public class PrimitiveClassLoadingUtil
    /**
     * First checks if <code>name</code> is a primitive type. If yes, then returns
     * the corresponding {@link Class} for that primitive. If it's not a primitive
-    * then the {@link ClassLoader#loadClass(String)} method is invoked, passing
-    * it the <code>name</code>
+    * then the {@link Class#forName(String, boolean, ClassLoader)} method is invoked, passing
+    * it the <code>name</code>, false and the <code>cl</code> classloader
+    * 
+    * Note that we intentionally use Class.forName(name,boolean,cl)
+    * to handle issues with loading array types in Java 6 http://bugs.sun.com/view_bug.do?bug_id=6434149
     * 
     * @param name The class that has to be loaded
     * @param cl The {@link ClassLoader} to use, if <code>name</code> is *not* a primitive
@@ -89,7 +92,11 @@ public class PrimitiveClassLoadingUtil
       {
          return double.class;
       }
-      // It's not a primitive so let the classloader handle it
-      return cl.loadClass(name);
+      // Now that we know its not a primitive, lets just allow
+      // the passed classloader to handle the request.
+      // Note that we are intentionally using Class.forName(name,boolean,cl)
+      // to handle issues with loading array types in Java 6 http://bugs.sun.com/view_bug.do?bug_id=6434149
+      return Class.forName(name, false, cl);
+
    }
 }
