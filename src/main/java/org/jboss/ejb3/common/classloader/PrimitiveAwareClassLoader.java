@@ -21,6 +21,7 @@
  */
 package org.jboss.ejb3.common.classloader;
 
+import org.jboss.ejb3.common.classloader.util.PrimitiveClassLoadingUtil;
 
 /**
  * PrimitiveAwareClassLoader
@@ -33,7 +34,8 @@ package org.jboss.ejb3.common.classloader;
  * {@link Class} corresponding to the primitive. For all other requests, it redirects
  * the request to the parent classloader.
  *
- * @deprecated Do not use this "classloader" any more. Instead use the {@link PrimitiveClassLoadingUtil}
+ * @deprecated Since 1.0.1 version of jboss-ejb3-common : Do not use this "classloader" any more. 
+ * Instead use the {@link PrimitiveClassLoadingUtil}
  * utility to take care of centralized logic for primitive handling during classloading. See 
  * https://jira.jboss.org/jira/browse/EJBTHREE-1910 for more details.
  * 
@@ -57,62 +59,18 @@ public class PrimitiveAwareClassLoader extends ClassLoader
    }
 
    /**
-    * As recommended in {@link ClassLoader#findClass(java.lang.String)}, the findClass method
-    * should be overriden by the custom classloaders. This method will first check whether 
-    * the requested <code>name</code> is a primitive. If yes, it returns the appropriate {@link Class}
-    * for the primitive. If not, then it lets the parent handle it.
+    * Since jboss-ejb3-common 1.0.1, this just delegates the call to 
+    * {@link PrimitiveClassLoadingUtil#loadClass(String, ClassLoader)} passing
+    * it the classloader returned by {@link #getParent()}.
     * 
+    * @see PrimitiveClassLoadingUtil
     */
    @Override
-   protected java.lang.Class<?> findClass(String name) throws ClassNotFoundException
+   public Class<?> loadClass(String name) throws ClassNotFoundException
    {
-
-      /*
-       * Handle Primitives
-       */
-      if (name.equals(void.class.getName()))
-      {
-         return void.class;
-      }
-      if (name.equals(byte.class.getName()))
-      {
-         return byte.class;
-      }
-      if (name.equals(short.class.getName()))
-      {
-         return short.class;
-      }
-      if (name.equals(int.class.getName()))
-      {
-         return int.class;
-      }
-      if (name.equals(long.class.getName()))
-      {
-         return long.class;
-      }
-      if (name.equals(char.class.getName()))
-      {
-         return char.class;
-      }
-      if (name.equals(boolean.class.getName()))
-      {
-         return boolean.class;
-      }
-      if (name.equals(float.class.getName()))
-      {
-         return float.class;
-      }
-      if (name.equals(double.class.getName()))
-      {
-         return double.class;
-      }
-
-      // Now that we know, its not a primitive, lets just allow
-      // the parent to handle the request.
-      // Note that we are intentionally using Class.forName(name,boolean,cl)
-      // to handle issues with loading array types in Java 6 http://bugs.sun.com/view_bug.do?bug_id=6434149
-      return Class.forName(name, false, this.getParent());
-
+      // EJBTHREE-1910 Let the new util handle this instead of we doing it ourselves
+      // See the javadocs of PrimitiveClassLoadingUtil for more details and reasoning
+      return PrimitiveClassLoadingUtil.loadClass(name, this.getParent());
    }
 
 }
