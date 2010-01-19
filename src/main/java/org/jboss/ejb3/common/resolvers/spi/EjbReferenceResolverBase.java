@@ -79,10 +79,13 @@ public abstract class EjbReferenceResolverBase
     * Returns the session bean within the specified metadata to match the specified reference,
     * otherwise returns null.
     * 
-    * @param reference
-    * @param metadata
+    * @param reference The EJB reference for which a match is being searched for
+    * @param metadata The metadata which will be used for finding any potential match
     * @param cl The ClassLoader for the specified metadata
     * @return
+    * 
+    * @throws NullPointerException If either of the passed <code>reference</code> or <code>metadata</code>
+    *   is null.
     */
    protected String getMatch(EjbReference reference, JBossMetaData metadata, ClassLoader cl)
          throws NonDeterministicInterfaceException
