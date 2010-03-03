@@ -42,16 +42,7 @@
  */
 package org.jboss.ejb3.test.common.resolvers.unit;
 
-import java.lang.reflect.AnnotatedElement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import junit.framework.TestCase;
-
 import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.deployers.structure.spi.helpers.AbstractDeploymentUnit;
 import org.jboss.ejb3.common.deployers.spi.AttachmentNames;
@@ -71,6 +62,8 @@ import org.jboss.ejb3.test.common.resolvers.Child2Bean;
 import org.jboss.ejb3.test.common.resolvers.Child2LocalBusiness;
 import org.jboss.ejb3.test.common.resolvers.Child3Bean;
 import org.jboss.ejb3.test.common.resolvers.Child3LocalBusiness;
+import org.jboss.ejb3.test.common.resolvers.ChildServiceBean;
+import org.jboss.ejb3.test.common.resolvers.ChildServiceLocal;
 import org.jboss.ejb3.test.common.resolvers.NestedChildBean;
 import org.jboss.ejb3.test.common.resolvers.NestedChildLocalBusiness;
 import org.jboss.ejb3.test.common.resolvers.ParentBean;
@@ -83,6 +76,17 @@ import org.jboss.metadata.ejb.jboss.JBoss50MetaData;
 import org.jboss.metadata.ejb.jboss.JBossMetaData;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.lang.reflect.AnnotatedElement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * EjbReferenceResolverUnitTestCaseBase
@@ -137,7 +141,7 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
    public void testDeploymentUnitRelationships() throws Throwable
    {
       // Parent should have 2 children
-      TestCase.assertEquals("Parent DU does not have expected number of children", 2, parentDu.getChildren().size());
+      TestCase.assertEquals("Parent DU does not have expected number of children", 3, parentDu.getChildren().size());
 
       // Children should have parent of parentDU
       TestCase.assertEquals("Child1 DU should have parent of Parent DU", parentDu, child1Du.getParent());
@@ -156,6 +160,15 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
 
       // Nested Child should have parent of Child 1
       TestCase.assertEquals("Nested Child DU should have parent of Child1 DU", child1Du, nestedChildDu.getParent());
+   }
+
+   @Test
+   public void testEJBTHREE2033()
+   {
+      EjbReference ref = new EjbReference(null, ChildServiceLocal.class.getName(), null);
+
+      String name = resolver.resolveEjb(parentDu, ref);
+      assertEquals("ChildServiceBean/local-org.jboss.ejb3.test.common.resolvers.ChildServiceLocal", name);
    }
 
    /**
@@ -394,11 +407,13 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
       JBoss50MetaData child1Md = creator.create(child1Classes);
       JBoss50MetaData child2Md = creator.create(child2Classes);
       JBoss50MetaData nestedChildMd = creator.create(nestedChildClasses);
+      JBoss50MetaData serviceMd = creator.create(Arrays.<Class<?>>asList(ChildServiceBean.class));
       Collection<JBossMetaData> mds = new ArrayList<JBossMetaData>();
       mds.add(parentMd);
       mds.add(child1Md);
       mds.add(child2Md);
       mds.add(nestedChildMd);
+      mds.add(serviceMd);
 
       // Decorate all EJBs w/ JNDI Policy
       for (JBossMetaData md : mds)
@@ -419,6 +434,10 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
       child2Du = new MockDeploymentUnit("Child 2", parentDu);
       child2Du.addAttachment(AttachmentNames.PROCESSED_METADATA, child2Md);
 
+      // Service Bean DU
+      MockDeploymentUnit serviceDu = new MockDeploymentUnit("Child Service", parentDu);
+      serviceDu.addAttachment(AttachmentNames.PROCESSED_METADATA, serviceMd);
+
       // Nested Child DU
       nestedChildDu = new MockDeploymentUnit("Nested Child", child1Du);
       nestedChildDu.addAttachment(AttachmentNames.PROCESSED_METADATA, nestedChildMd);
@@ -426,6 +445,7 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
       // Set children of parents for bi-directional support
       parentDu.addChild(child1Du);
       parentDu.addChild(child2Du);
+      parentDu.addChild(serviceDu);
       child1Du.addChild(nestedChildDu);
 
       // Set Resolver

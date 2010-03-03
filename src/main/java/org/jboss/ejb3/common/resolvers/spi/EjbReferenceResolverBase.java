@@ -110,7 +110,7 @@ public abstract class EjbReferenceResolverBase
       for (JBossEnterpriseBeanMetaData bean : beans)
       {
          // We only can inject Session Beans (Entity and MDB are not targets)
-         if (!bean.isSession())
+         if (!(bean instanceof JBossSessionBeanMetaData))
          {
             continue;
          }
