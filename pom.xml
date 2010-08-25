@@ -25,6 +25,7 @@
     <modules>
         <module>spi</module>
         <module>ejb30-impl</module>
+        <module>ejb31-impl</module>
     </modules>
 
     <!-- Issues -->

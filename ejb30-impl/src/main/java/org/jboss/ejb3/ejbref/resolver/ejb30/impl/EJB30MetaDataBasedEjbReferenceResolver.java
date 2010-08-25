@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.ejb3.common.deployers.spi.AttachmentNames;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReference;
 import org.jboss.ejb3.ejbref.resolver.spi.NonDeterministicInterfaceException;
@@ -48,62 +47,51 @@ import org.jboss.metadata.ejb.spec.BusinessRemotesMetaData;
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public abstract class EjbReferenceResolverBase
+public class EJB30MetaDataBasedEjbReferenceResolver implements MetaDataBasedEjbReferenceResolver
 {
    // --------------------------------------------------------------------------------||
    // Class Members ------------------------------------------------------------------||
    // --------------------------------------------------------------------------------||
 
-   private static final Logger log = Logger.getLogger(EjbReferenceResolverBase.class);
+   private static final Logger log = Logger.getLogger(EJB30MetaDataBasedEjbReferenceResolver.class);
 
    /**
     * The attachment name of the metadata within the DU
     */
    public static final String DU_ATTACHMENT_NAME_METADATA = AttachmentNames.PROCESSED_METADATA;
 
-   // --------------------------------------------------------------------------------||
-   // Functional Methods -------------------------------------------------------------||
-   // --------------------------------------------------------------------------------||
-
-   /**
-    * Obtains the metadata attachment from the specified deployment unit, returning
-    * null if not present
-    * 
-    * @param du
-    * @return
-    */
-   protected JBossMetaData getMetaData(DeploymentUnit du)
+   public String resolveEjb(EjbReference reference, JBossMetaData jbossMetaData, ClassLoader cl)
    {
-      return du.getAttachment(EjbReferenceResolverBase.DU_ATTACHMENT_NAME_METADATA, JBossMetaData.class);
+      if (reference.getMappedName() != null && reference.getMappedName().isEmpty() == false)
+      {
+         log.debug("Bypassing resolution, using mappedName of " + reference);
+         return reference.getMappedName();
+      }
+      
+      JBossSessionBeanMetaData sessionBean = this.findSessionBean(reference, jbossMetaData, cl);
+      if (sessionBean == null)
+      {
+         return null;
+      }
+      return this.getJNDIName(reference, sessionBean, cl);
+
    }
 
-   /**
-    * Returns the session bean within the specified metadata to match the specified reference,
-    * otherwise returns null.
-    * 
-    * @param reference The EJB reference for which a match is being searched for
-    * @param metadata The metadata which will be used for finding any potential match
-    * @param cl The ClassLoader for the specified metadata
-    * @return
-    * 
-    * @throws NullPointerException If either of the passed <code>reference</code> or <code>metadata</code>
-    *   is null.
-    */
-   protected String getMatch(EjbReference reference, JBossMetaData metadata, ClassLoader cl)
-         throws NonDeterministicInterfaceException
+
+   protected JBossSessionBeanMetaData findSessionBean(EjbReference reference, JBossMetaData metadata, ClassLoader cl)
    {
       // Initialize
       log.debug("Resolving reference for " + reference + " in " + metadata);
       Collection<JBossSessionBeanMetaData> matches = new ArrayList<JBossSessionBeanMetaData>();
 
       /*
-       * If mapped-name is defined, bypass all other resolution and use it 
-       */
-      String mappedName = reference.getMappedName();
-      if (mappedName != null && mappedName.trim().length() > 0)
-      {
-         return mappedName;
-      }
+      //       * If mapped-name is defined, bypass all other resolution and use it 
+      //       */
+      //      String mappedName = reference.getMappedName();
+      //      if (mappedName != null && mappedName.trim().length() > 0)
+      //      {
+      //         return mappedName;
+      //      }
 
       // Get all Enterprise Beans contained in the metadata
       JBossEnterpriseBeansMetaData beans = metadata.getEnterpriseBeans();
@@ -137,7 +125,7 @@ public abstract class EjbReferenceResolverBase
          String beanName = reference.getBeanName();
          assert beanName == null || beanName.trim().length() == 0 : "Error in resolution logic, more than one eligible EJB "
                + "was found to satisfy beanInterface "
-               + this.getBeanInterfaceName(reference, cl)
+               + reference.getBeanInterface()
                + ", but EJB Name was explicitly-specified.";
 
          // Report error
@@ -147,8 +135,58 @@ public abstract class EjbReferenceResolverBase
       }
 
       // Return the JNDI name of the matching metadata if present, otherwise null
-      return matches.size() > 0 ? this.getJndiName(reference, matches.iterator().next(), cl) : null;
+      return matches.size() > 0 ? matches.iterator().next() : null;
 
+   }
+
+   protected String getJNDIName(EjbReference reference, JBossSessionBeanMetaData metadata, ClassLoader cl)
+   {
+      // If mapped-name is specified, just use it
+      String mappedName = reference.getMappedName();
+      if (mappedName != null && mappedName.trim().length() > 0)
+      {
+         log.debug("Bypassing resolution, using mappedName of " + reference);
+         return mappedName;
+      }
+
+      // Get the bean interface name
+      String interfaceName = this.getBeanInterfaceName(reference, cl);
+
+      // Get eligible interfaces
+      Collection<String> eligibleInterfaces = this.getEligibleBeanInterfaces(metadata);
+
+      // Ensure the bean interface name is directly declared in metadata
+      if (!eligibleInterfaces.contains(interfaceName))
+      {
+
+         /*
+          *  Not directly in metadata, so we've got to resolve this
+          */
+         log.debug("Found specified beanInterface that is not a direct beanInterface of EJB " + metadata.getEjbName()
+               + ": " + interfaceName);
+
+         // Loop through eligible interfaces
+         for (String eligibleInterface : eligibleInterfaces)
+         {
+            // Get the parents of the eligible interface
+            Collection<String> parents = this.getAllParentInterfaces(eligibleInterface, cl);
+            // If the specified interface name if a parent of this eligible interface
+            if (parents.contains(interfaceName))
+            {
+               // Set the interface name to the resolved
+               log.debug("Resolved specified beanInterface " + interfaceName + " to " + eligibleInterface + " for EJB "
+                     + metadata.getEjbName());
+               interfaceName = eligibleInterface;
+               break;
+            }
+         }
+
+      }
+
+      // Return 
+      String resolvedJndiName = JbossSessionBeanJndiNameResolver.resolveJndiName(metadata, interfaceName);
+      log.debug("Resolved JNDI Name for " + reference + " of EJB " + metadata.getEjbName() + ": " + resolvedJndiName);
+      return resolvedJndiName;
    }
 
    /**
@@ -222,7 +260,7 @@ public abstract class EjbReferenceResolverBase
     * @param cl
     * @return
     */
-   private Collection<String> getAllParentInterfaces(Collection<String> interfaceNames, ClassLoader cl)
+   protected Collection<String> getAllParentInterfaces(Collection<String> interfaceNames, ClassLoader cl)
    {
       // Initialize
       Collection<String> interfaces = new ArrayList<String>();
@@ -238,7 +276,7 @@ public abstract class EjbReferenceResolverBase
       return interfaces;
    }
 
-   private Collection<String> getAllParentInterfaces(String interfaceName, ClassLoader cl)
+   protected Collection<String> getAllParentInterfaces(String interfaceName, ClassLoader cl)
    {
       // Initialize
       Collection<String> interfaces = new ArrayList<String>();
@@ -285,7 +323,7 @@ public abstract class EjbReferenceResolverBase
     * @param smd
     * @return
     */
-   private Collection<String> getEligibleBeanInterfaces(JBossSessionBeanMetaData smd)
+   protected Collection<String> getEligibleBeanInterfaces(JBossSessionBeanMetaData smd)
    {
       Collection<String> interfaces = new ArrayList<String>();
 
@@ -313,65 +351,6 @@ public abstract class EjbReferenceResolverBase
 
       // Return
       return interfaces;
-   }
-
-   /**
-    * Obtains the resolved JNDI target for the specified reference
-    * within the specified metadata
-    * 
-    * @param reference
-    * @param metadata
-    * @param cl
-    * @return
-    */
-   protected String getJndiName(EjbReference reference, JBossSessionBeanMetaData metadata, ClassLoader cl)
-   {
-      // If mapped-name is specified, just use it
-      String mappedName = reference.getMappedName();
-      if (mappedName != null && mappedName.trim().length() > 0)
-      {
-         log.debug("Bypassing resolution, using mappedName of " + reference);
-         return mappedName;
-      }
-
-      // Get the bean interface name
-      String interfaceName = this.getBeanInterfaceName(reference, cl);
-
-      // Get eligible interfaces
-      Collection<String> eligibleInterfaces = this.getEligibleBeanInterfaces(metadata);
-
-      // Ensure the bean interface name is directly declared in metadata
-      if (!eligibleInterfaces.contains(interfaceName))
-      {
-
-         /*
-          *  Not directly in metadata, so we've got to resolve this
-          */
-         log.debug("Found specified beanInterface that is not a direct beanInterface of EJB " + metadata.getEjbName()
-               + ": " + interfaceName);
-
-         // Loop through eligible interfaces
-         for (String eligibleInterface : eligibleInterfaces)
-         {
-            // Get the parents of the eligible interface
-            Collection<String> parents = this.getAllParentInterfaces(eligibleInterface, cl);
-            // If the specified interface name if a parent of this eligible interface
-            if (parents.contains(interfaceName))
-            {
-               // Set the interface name to the resolved
-               log.debug("Resolved specified beanInterface " + interfaceName + " to " + eligibleInterface + " for EJB "
-                     + metadata.getEjbName());
-               interfaceName = eligibleInterface;
-               break;
-            }
-         }
-
-      }
-
-      // Return 
-      String resolvedJndiName = JbossSessionBeanJndiNameResolver.resolveJndiName(metadata, interfaceName);
-      log.debug("Resolved JNDI Name for " + reference + " of EJB " + metadata.getEjbName() + ": " + resolvedJndiName);
-      return resolvedJndiName;
    }
 
    /**

@@ -93,6 +93,7 @@ import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.JBossServicePolicyDecorat
 import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.JBossSessionPolicyDecorator;
 import org.jboss.metadata.ejb.jboss.jndipolicy.plugins.JbossEntityPolicyDecorator;
 import org.jboss.metadata.ejb.jboss.jndipolicy.spi.DefaultJndiBindingPolicy;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -135,7 +136,14 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
 
    protected static MockDeploymentUnit nestedChildDu;
 
-   protected static EjbReferenceResolver resolver;
+   protected EjbReferenceResolver resolver;
+   
+   @Before
+   public void before()
+   {
+      this.resolver = new FirstMatchEjbReferenceResolver();
+      log.info("Using " + EjbReferenceResolver.class.getSimpleName() + ": " + resolver.getClass().getName());
+   }
 
    // --------------------------------------------------------------------------------||
    // Tests --------------------------------------------------------------------------||
@@ -457,8 +465,6 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
       parentDu.addChild(serviceDu);
       child1Du.addChild(nestedChildDu);
 
-      // Set Resolver
-      resolver = new FirstMatchEjbReferenceResolver();
 
    }
    
@@ -625,10 +631,7 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
       return policy;
    }
    
-   // --------------------------------------------------------------------------------||
-   // Inner Classes ------------------------------------------------------------------||
-   // --------------------------------------------------------------------------------||
-
+   
    
 
 }

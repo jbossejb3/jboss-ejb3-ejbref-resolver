@@ -27,6 +27,7 @@ import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReference;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReferenceResolver;
 import org.jboss.ejb3.ejbref.resolver.spi.UnresolvableReferenceException;
+import org.jboss.logging.Logger;
 import org.jboss.metadata.ejb.jboss.JBossMetaData;
 
 /**
@@ -47,18 +48,32 @@ import org.jboss.metadata.ejb.jboss.JBossMetaData;
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $
  */
-public class FirstMatchEjbReferenceResolver extends EjbReferenceResolverBase implements EjbReferenceResolver
+public class FirstMatchEjbReferenceResolver implements EjbReferenceResolver
 {
 
-   // --------------------------------------------------------------------------------||
-   // Required Implementations -------------------------------------------------------||
-   // --------------------------------------------------------------------------------||
+   private static Logger logger = Logger.getLogger(FirstMatchEjbReferenceResolver.class);
+   
+   protected MetaDataBasedEjbReferenceResolver metadataBasedEjbReferenceResolver;
+   
+   public FirstMatchEjbReferenceResolver()
+   {
+      this.metadataBasedEjbReferenceResolver = new EJB30MetaDataBasedEjbReferenceResolver();
+   }
 
-   /* (non-Javadoc)
-    * @see org.jboss.ejb3.resolver.EjbReferenceResolver#resolveEjb(org.jboss.deployers.structure.spi.DeploymentUnit, org.jboss.ejb3.resolver.EjbReference)
+   /**
+    * {@inheritDoc}
     */
+   @Override
    public String resolveEjb(DeploymentUnit du, EjbReference reference)
    {
+      // If mapped-name is specified, just use it
+      String mappedName = reference.getMappedName();
+      if (mappedName != null && mappedName.trim().length() > 0)
+      {
+         logger.debug("Bypassing resolution, using mappedName of " + reference);
+         return mappedName;
+      }
+
       // Initialize
       String jndiName = null;
 
@@ -101,7 +116,8 @@ public class FirstMatchEjbReferenceResolver extends EjbReferenceResolverBase imp
       if (metadata != null)
       {
          // Look for a match within this metadata
-         jndiName = this.getMatch(reference, metadata, rootDu.getClassLoader());
+         jndiName = this.getMetaDataBasedEjbReferenceResolver().resolveEjb(reference, metadata, rootDu.getClassLoader());
+
       }
 
       // If we haven't found the JNDI name in this DU
@@ -131,5 +147,22 @@ public class FirstMatchEjbReferenceResolver extends EjbReferenceResolverBase imp
 
       // Return the JNDI Name
       return jndiName;
+   }
+
+   /**
+    * Obtains the metadata attachment from the specified deployment unit, returning
+    * null if not present
+    * 
+    * @param du
+    * @return
+    */
+   protected JBossMetaData getMetaData(DeploymentUnit du)
+   {
+      return du.getAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, JBossMetaData.class);
+   }
+
+   protected MetaDataBasedEjbReferenceResolver getMetaDataBasedEjbReferenceResolver()
+   {
+      return this.metadataBasedEjbReferenceResolver;
    }
 }

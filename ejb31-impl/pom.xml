@@ -1,0 +1,90 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <!-- Define Parent -->
+    <parent>
+        <groupId>org.jboss.ejb3.ejbref.resolver</groupId>
+        <artifactId>ejbref-resolver-parent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <!-- Maven POM Model Version -->
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- Artifact Information -->
+    <groupId>org.jboss.ejb3.ejbref.resolver</groupId>
+    <artifactId>ejbref-resolver-ejb31-impl</artifactId>
+    <name>Implementation of @EJB reference resolvers for EJB3.1 beans</name>
+    <url>http://www.jboss.org/jbossejb3/</url>
+
+    <properties>
+        <version.jboss.metadata.ejb>2.0.0-SNAPSHOT</version.jboss.metadata.ejb>
+    </properties>
+
+    <dependencies>
+        <!--  ejbref-resolver SPI -->
+        <dependency>
+            <groupId>org.jboss.ejb3.ejbref.resolver</groupId>
+            <artifactId>ejbref-resolver-spi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        
+        <!-- JBoss Metadata EJB -->
+        <dependency>
+            <groupId>org.jboss.metadata</groupId>
+            <artifactId>jboss-metadata-ejb</artifactId>
+            <version>${version.jboss.metadata.ejb}</version>
+        </dependency>
+        
+        <!-- EJB3.0 ejbref-resolver impl (we extend from that) -->
+        <dependency>
+            <groupId>org.jboss.ejb3.ejbref.resolver</groupId>
+            <artifactId>ejbref-resolver-ejb30-impl</artifactId>
+            <version>${project.version}</version>
+            
+            <!-- We don't want the outdated jboss-metadata 1.x -->
+            <exclusions>
+                <!-- jboss-metadata must not dictate the JPA API -->
+                <exclusion>
+                    <groupId>org.jboss.metadata</groupId>
+					<artifactId>jboss-metadata</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+
+        <!--  MC deployers -->
+        <dependency>
+            <groupId>org.jboss.deployers</groupId>
+            <artifactId>jboss-deployers-spi</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+
+        <!--  Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ejbref-resolver-ejb30-impl</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <type>test-jar</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jboss.javaee</groupId>
+            <artifactId>jboss-persistence-api</artifactId>
+            <version>3.0.0.CR1</version>
+            <scope>runtime</scope>
+        </dependency>
+
+    </dependencies>
+
+
+</project>

@@ -49,6 +49,7 @@ import org.jboss.ejb3.ejbref.resolver.spi.EjbReference;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReferenceResolver;
 import org.jboss.logging.Logger;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -96,18 +97,13 @@ public class FirstMatchEjbReferenceResolverUnitTestCase extends EjbReferenceReso
       Assert.assertNotNull("Shoudld have been able to resolve non-unique reference", jndiName);
    }
 
-   // --------------------------------------------------------------------------------||
-   // Lifecycle Methods --------------------------------------------------------------||
-   // --------------------------------------------------------------------------------||
-
-   @BeforeClass
-   public static void beforeClass() throws Exception
+   
+   @Override
+   @Before
+   public void before()
    {
-      // Do common init
-      EjbReferenceResolverUnitTestCaseBase.beforeClass();
-
       // Set Resolver
       resolver = new FirstMatchEjbReferenceResolver();
-      log.info("Using " + EjbReferenceResolver.class.getSimpleName() + ": " + resolver.getClass().getName());
+      log.info("Using " + EjbReferenceResolver.class.getSimpleName() + ": " + resolver.getClass().getName());  
    }
 }

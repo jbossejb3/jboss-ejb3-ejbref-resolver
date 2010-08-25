@@ -29,37 +29,55 @@ import org.jboss.deployers.structure.spi.DeploymentUnit;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReference;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReferenceResolver;
 import org.jboss.ejb3.ejbref.resolver.spi.UnresolvableReferenceException;
+import org.jboss.logging.Logger;
 import org.jboss.metadata.ejb.jboss.JBossMetaData;
 
 /**
  * @author <a href="mailto:cdewolf@redhat.com">Carlo de Wolf</a>
  * @version $Revision: $
  */
-public class ScopedEJBReferenceResolver extends EjbReferenceResolverBase
-   implements EjbReferenceResolver
+public class ScopedEJBReferenceResolver implements EjbReferenceResolver
 {
+
+   private static Logger logger = Logger.getLogger(ScopedEJBReferenceResolver.class);
+   
+   protected MetaDataBasedEjbReferenceResolver metadataBasedEjbReferenceResolver;
+
+   public ScopedEJBReferenceResolver()
+   {
+      this.metadataBasedEjbReferenceResolver = new EJB30MetaDataBasedEjbReferenceResolver();
+   }
+
    protected String find(DeploymentUnit du, EjbReference reference)
    {
-      JBossMetaData metadata = getMetaData(du);
+      JBossMetaData metadata = this.getMetaData(du);
       if (metadata == null)
       {
          return null;
       }
-      return getMatch(reference, metadata, du.getClassLoader());
+      return this.getMetaDataBasedEjbReferenceResolver().resolveEjb(reference, metadata, du.getClassLoader());
    }
-   
+
    /**
     * {@inheritDoc}
     */
    @Override
    public String resolveEjb(DeploymentUnit du, EjbReference reference) throws UnresolvableReferenceException
    {
+      if (reference.getMappedName() != null && reference.getMappedName().isEmpty() == false)
+      {
+         logger.debug("Bypassing resolution, using mappedName of " + reference);
+         return reference.getMappedName();
+      }
+
       String jndiName = resolveWithinDeploymentUnit(du, new HashSet<DeploymentUnit>(), reference);
-      if(jndiName == null)
+      if (jndiName == null)
+      {
          throw new UnresolvableReferenceException("Could not resolve reference " + reference + " in " + du);
+      }
       return jndiName;
    }
-   
+
    /**
     * This method first tries to resolve the passed {@link EjbReference} in the passed <code>du</code>.
     * If the jndi name cannot be resolved in that {@link DeploymentUnit}, then it tries to <i>recursively</i> resolve the reference
@@ -77,37 +95,38 @@ public class ScopedEJBReferenceResolver extends EjbReferenceResolverBase
     * @return Returns the jndi-name resolved out the {@link EjbReference}. If the jndi-name cannot be resolved, then this
     *           method returns null.
     */
-   protected String resolveWithinDeploymentUnit(DeploymentUnit du, Collection<DeploymentUnit> alreadyScannedDUs, EjbReference reference)
+   protected String resolveWithinDeploymentUnit(DeploymentUnit du, Collection<DeploymentUnit> alreadyScannedDUs,
+         EjbReference reference)
    {
       // first find in the passed DU
       String jndiName = find(du, reference);
       // found, just return it
-      if(jndiName != null)
+      if (jndiName != null)
       {
          return jndiName;
       }
-      
+
       if (alreadyScannedDUs == null)
       {
          alreadyScannedDUs = new HashSet<DeploymentUnit>();
       }
-      
+
       // jndi-name not resolved in the passed DU, so let's
       // check try resolving in its children DUs
       List<DeploymentUnit> children = du.getChildren();
-      if(children != null)
+      if (children != null)
       {
-         for(DeploymentUnit child : children)
+         for (DeploymentUnit child : children)
          {
             // already searched that one
-            if(alreadyScannedDUs.contains(child))
+            if (alreadyScannedDUs.contains(child))
             {
                continue;
             }
             // try resolving in this child DU
             jndiName = resolveWithinDeploymentUnit(child, alreadyScannedDUs, reference);
             // found in this child DU (or its nested child), return the jndi name
-            if(jndiName != null)
+            if (jndiName != null)
             {
                return jndiName;
             }
@@ -116,18 +135,35 @@ public class ScopedEJBReferenceResolver extends EjbReferenceResolverBase
             alreadyScannedDUs.add(child);
          }
       }
-      
+
       // add this DU to the already scanned DU collection
       alreadyScannedDUs.add(du);
-      
+
       // we haven't yet resolved the jndi-name, so let's
       // try resolving in our parent (and any of its children)
       DeploymentUnit parent = du.getParent();
-      if(parent != null)
+      if (parent != null)
       {
          return resolveWithinDeploymentUnit(parent, alreadyScannedDUs, reference);
       }
       // couldn't resolve in the entire DU hierarchy, return null
       return null;
+   }
+
+   /**
+    * Obtains the metadata attachment from the specified deployment unit, returning
+    * null if not present
+    * 
+    * @param du
+    * @return
+    */
+   protected JBossMetaData getMetaData(DeploymentUnit du)
+   {
+      return du.getAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, JBossMetaData.class);
+   }
+
+   protected MetaDataBasedEjbReferenceResolver getMetaDataBasedEjbReferenceResolver()
+   {
+      return this.metadataBasedEjbReferenceResolver;
    }
 }

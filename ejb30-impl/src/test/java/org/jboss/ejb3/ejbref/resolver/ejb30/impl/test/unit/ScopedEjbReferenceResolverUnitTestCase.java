@@ -37,6 +37,7 @@ import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.NotSoSimpleCalculator;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.SimpleCalculator;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReference;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReferenceResolver;
+import org.jboss.logging.Logger;
 import org.jboss.metadata.annotation.creator.ejb.jboss.JBoss50Creator;
 import org.jboss.metadata.annotation.finder.AnnotationFinder;
 import org.jboss.metadata.annotation.finder.DefaultAnnotationFinder;
@@ -52,15 +53,17 @@ import org.junit.Test;
  * @author Jaikiran Pai
  * @version $Revision: $
  */
-public class ScopedEjbReferenceResolverUnitTestCase
+public class ScopedEjbReferenceResolverUnitTestCase extends EjbReferenceResolverUnitTestCaseBase
 {
 
-   private EjbReferenceResolver scopedResolver;
-
+   private static Logger logger = Logger.getLogger(ScopedEjbReferenceResolverUnitTestCase.class);
+   
+   @Override
    @Before
    public void before()
    {
-      scopedResolver = new ScopedEJBReferenceResolver();
+      this.resolver = new ScopedEJBReferenceResolver();
+      logger.info("Using " + EjbReferenceResolver.class.getSimpleName() + ": " + resolver.getClass().getName());  
    }
 
    /**
@@ -121,7 +124,7 @@ public class ScopedEjbReferenceResolverUnitTestCase
       // Create reference to the Echo bean
       EjbReference echoEjbReference = new EjbReference(null, Echo.class.getName(), null);
       // resolve it from the child1 DU
-      String jndiNameResolvedFromChildOneDU = this.scopedResolver.resolveEjb(childOneDU, echoEjbReference);
+      String jndiNameResolvedFromChildOneDU = this.resolver.resolveEjb(childOneDU, echoEjbReference);
 
       // Test
       Assert.assertNotNull("Could not resolve jndi name for " + Echo.class.getName()
@@ -132,17 +135,17 @@ public class ScopedEjbReferenceResolverUnitTestCase
       // we should always get back the same jndi name, irrespective of from which DU we start the resolution
 
       // resolve from child2 DU
-      String jndiNameResolvedFromChildTwoDU = this.scopedResolver.resolveEjb(childTwoDU, echoEjbReference);
+      String jndiNameResolvedFromChildTwoDU = this.resolver.resolveEjb(childTwoDU, echoEjbReference);
       Assert.assertEquals("Unexpected jndi name for " + Echo.class.getName() + " business interface from child2 DU",
             jndiNameResolvedFromChildOneDU, jndiNameResolvedFromChildTwoDU);
 
       // resolve from parent DU
-      String jndiNameResolvedFromParentDU = this.scopedResolver.resolveEjb(parentDU, echoEjbReference);
+      String jndiNameResolvedFromParentDU = this.resolver.resolveEjb(parentDU, echoEjbReference);
       Assert.assertEquals("Unexpected jndi name for " + Echo.class.getName() + " business interface from parent DU",
             jndiNameResolvedFromChildOneDU, jndiNameResolvedFromParentDU);
 
       // resolve from the DU which has the EchoBean
-      String jndiNameResolvedFromDUContainingEchoBean = this.scopedResolver
+      String jndiNameResolvedFromDUContainingEchoBean = this.resolver
             .resolveEjb(duWithEchoBean, echoEjbReference);
       Assert.assertEquals("Unexpected jndi name for " + Echo.class.getName()
             + " business interface from the DU containing the EchoBean", jndiNameResolvedFromChildOneDU,
