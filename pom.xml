@@ -1,112 +1,208 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
-  <!-- Define Parent -->
-  <parent>
-    <artifactId>jboss-ejb3-build</artifactId>
-    <groupId>org.jboss.ejb3</groupId>
-    <version>1.0.0</version>
-    <relativePath>../build/pom.xml</relativePath>
-  </parent>
 
-  <!-- Maven POM Model Version -->
-  <modelVersion>4.0.0</modelVersion>
+    <!-- Maven POM Model Version -->
+    <modelVersion>4.0.0</modelVersion>
 
-  <!-- Artifact Information -->
-  <groupId>org.jboss.ejb3</groupId>
-  <artifactId>jboss-ejb3-common</artifactId>
-  <version>1.0.4-SNAPSHOT</version>
-  <name>JBoss EJB 3.0 Common Utilities</name>
-  <description>
-    JBoss EJB 3.0 Utilities Common to all Components
-  </description>
-  <url>http://www.jboss.org/jbossejb3/</url>
-  
-  <!-- Build Configuration -->
-  <build>
+    <!-- Artifact Information -->
+    <groupId>org.jboss.ejb3.ejbref.resolver</groupId>
+    <artifactId>ejbref-resolver-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>JBoss EJB 3.0 @EJB reference resolvers</name>
+    <url>http://www.jboss.org/jbossejb3/</url>
+    <packaging>pom</packaging>
 
-    <plugins>
+    <!-- Properties -->
+    <properties>
+        <!-- Versioning -->
+        <version.junit_junit>4.7</version.junit_junit>
+        <version.jboss.logging.spi>2.1.1.GA</version.jboss.logging.spi>
+        <version.jboss.logging.log4j>2.1.1.GA</version.jboss.logging.log4j>
+        <version.jboss.deployer>2.0.9.GA</version.jboss.deployer>
+    </properties>
 
-      <!-- Assembly Plugin (Common Client) -->
-      <plugin>
-        <artifactId>maven-assembly-plugin</artifactId>
-        <version>2.2-beta-1</version>
-        <executions>
-          <execution>
-            <id>make-assembly</id>
-            <phase>package</phase>
-            <goals>
-              <goal>attached</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <descriptors>
-            <descriptor>jboss-ejb3-common-client.xml</descriptor>
-          </descriptors>
-          <attach>true</attach>
-        </configuration>
-        <inherited>false</inherited>
-      </plugin>
+    <modules>
+        <module>spi</module>
+        <module>ejb30-impl</module>
+    </modules>
 
-    </plugins>
+    <!-- Issues -->
+    <issueManagement>
+        <system>jira</system>
+        <url>http://jira.jboss.com/jira/browse/EJBTHREE</url>
+    </issueManagement>
 
-  </build>
+    <!-- Build -->
+    <build>
 
-  <!-- Dependencies -->
+        <plugins>
 
-  <!-- 
-    
-    Version information is centralized in 
-    the Parent Build POM
-    
-  -->
+            <!-- Compiler JDK6 -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <inherited>true</inherited>
+                <configuration>
+                    <source>1.6</source>
+                    <target>1.6</target>
+                    <showDeprecation>false</showDeprecation>
+                    <showWarnings>true</showWarnings>
+                    <optimize>true</optimize>
+                    <compilerVersion>1.6</compilerVersion>
+                    <fork>true</fork>
+                    <argLine>-Xmx512M</argLine>
+                    <executable>${JAVA_HOME}/bin/javac</executable>
+                </configuration>
+            </plugin>
 
-  <dependencies>
+            <!-- Surefire -->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.4.3</version>
+                <configuration>
+                    <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                    <printSummary>true</printSummary>
+                    <forkMode>always</forkMode>
+                    <testFailureIgnore>false</testFailureIgnore>
+                    <includes>
+                        <include>**/*TestCase.java</include>
+                        <include>**/*TestSuite.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
 
-    <!-- JUnit -->
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-    </dependency>
-    
-    <!-- org.jboss.aop:jboss-aop -->
-    <dependency>
-      <groupId>org.jboss.aop</groupId>
-      <artifactId>jboss-aop</artifactId>
-    </dependency>
+            <!-- Enforce Maven Environment -->
+            <plugin>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>enforce-maven-environment</id>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <rules>
+                        <requireJavaVersion>
+                            <version>1.6</version> <!-- Must be JDK6 -->
+                        </requireJavaVersion>
+                        <requireProperty>
+                            <property>env.JAVA_HOME</property>
+                            <message>"JAVA_HOME needs to be
+                                set to
+                                compile"</message>
+                        </requireProperty>
+                    </rules>
+                </configuration>
+            </plugin>
 
-    <!-- Logging -->
-    <dependency>
-      <groupId>org.jboss.logging</groupId>
-      <artifactId>jboss-logging-spi</artifactId>
-    </dependency>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <archive>
+                        <!--
+                            We don't want .jar/META-INF/maven/*
+                            folder/files in the generated jar
+                        -->
+                        <addMavenDescriptor>false</addMavenDescriptor>
+                    </archive>
+                </configuration>
+            </plugin>
 
-    <dependency>
-      <groupId>org.jboss.logging</groupId>
-      <artifactId>jboss-logging-log4j</artifactId>
-      <scope>test</scope>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.jboss.microcontainer</groupId>
-      <artifactId>jboss-kernel</artifactId>
-    </dependency>
-    
-    <dependency>
-      <groupId>org.jboss.metadata</groupId>
-      <artifactId>jboss-metadata</artifactId>
-    </dependency>
- 
-    <dependency>
-      <groupId>org.jboss.security</groupId>
-      <artifactId>jboss-security-spi</artifactId>
-      <version>2.0.2.SP1</version>
-    </dependency>
+        </plugins>
 
-    <dependency>
-      <groupId>org.jboss.deployers</groupId>
-      <artifactId>jboss-deployers-spi</artifactId>
-    </dependency>
+    </build>
 
-  </dependencies>
+
+    <!-- Dependency Management -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${version.junit_junit}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jboss.logging</groupId>
+                <artifactId>jboss-logging-log4j</artifactId>
+                <version>${version.jboss.logging.log4j}</version>
+                <scope>runtime</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jboss.logging</groupId>
+                <artifactId>jboss-logging-spi</artifactId>
+                <version>${version.jboss.logging.spi}</version>
+            </dependency>
+
+            <!--  MC deployers -->
+            <dependency>
+                <groupId>org.jboss.deployers</groupId>
+                <artifactId>jboss-deployers-spi</artifactId>
+                <version>${version.jboss.deployer}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- Reporting -->
+    <reporting>
+        <plugins>
+
+            <!-- Cobertura (Code Coverage) -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <configuration>
+                    <formats>
+                        <format>html</format>
+                        <format>xml</format>
+                    </formats>
+                </configuration>
+            </plugin>
+
+            <!-- FindBugs -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <configuration>
+                    <xmlOutput>true</xmlOutput>
+                    <findbugsXmlOutputDirectory>target/site</findbugsXmlOutputDirectory>
+                </configuration>
+            </plugin>
+
+            <!-- JavaDoc / APIViz -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.5</version>
+                <configuration>
+                    <doclet>org.jboss.apiviz.APIviz</doclet>
+                    <docletArtifact>
+                        <groupId>org.jboss.apiviz</groupId>
+                        <artifactId>apiviz</artifactId>
+                        <version>1.3.0.GA</version>
+                    </docletArtifact>
+                    <useStandardDocletOptions>true</useStandardDocletOptions>
+                    <charset>UTF-8</charset>
+                    <encoding>UTF-8</encoding>
+                    <docencoding>UTF-8</docencoding>
+                    <breakiterator>true</breakiterator>
+                    <version>true</version>
+                    <author>true</author>
+                    <keywords>true</keywords>
+                    <additionalparam>
+                        -sourceclasspath
+                        ${project.build.outputDirectory}
+          </additionalparam>
+                </configuration>
+            </plugin>
+
+
+        </plugins>
+    </reporting>
+
 </project>
