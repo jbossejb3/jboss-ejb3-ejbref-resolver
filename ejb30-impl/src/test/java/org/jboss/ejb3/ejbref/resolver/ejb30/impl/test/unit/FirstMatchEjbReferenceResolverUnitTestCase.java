@@ -50,7 +50,6 @@ import org.jboss.ejb3.ejbref.resolver.spi.EjbReferenceResolver;
 import org.jboss.logging.Logger;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
