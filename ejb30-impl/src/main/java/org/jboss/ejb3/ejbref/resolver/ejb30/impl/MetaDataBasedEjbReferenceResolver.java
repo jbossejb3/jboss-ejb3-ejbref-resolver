@@ -22,16 +22,33 @@
 package org.jboss.ejb3.ejbref.resolver.ejb30.impl;
 
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReference;
+import org.jboss.ejb3.ejbref.resolver.spi.EjbReferenceResolver;
 import org.jboss.metadata.ejb.jboss.JBossMetaData;
 
 /**
- * MetaDataBasedEjbReferenceResolver
+ * Responsible for resolving jndi-name, of a {@link EjbReference}, through the use
+ * of bean metadata. 
+ * {@link EjbReferenceResolver}s can make use of this {@link MetaDataBasedEjbReferenceResolver} 
+ * by passing in the appropriate bean metadata to the {@link #resolveEjb(EjbReference, JBossMetaData, ClassLoader)} 
+ * method 
  *
  * @author Jaikiran Pai
  * @version $Revision: $
  */
+// This ideally should have been a SPI, but since this interface has a dependency
+// on the (bulky and to-be-replaced) JBMETA, it's better to keep this as an internal
+// interface, till we have a SPI for EJB metadata
 public interface MetaDataBasedEjbReferenceResolver
 {
 
+   /**
+    * Resolves the jndi name of a {@link EjbReference} using the passed {@link JBossMetaData}
+    * 
+    * @param reference The {@link EjbReference} which needs to be resolved into a jndi name
+    * @param jbossMetaData The metadata which will be used for resolving the jndi name
+    * @param cl {@link ClassLoader} that can be used (if required) during the resolution 
+    * @return Returns the resolved jndi-name for the passed {@link EjbReference}. If the jndi name
+    *           cannot be resolved, then this method returns null
+    */
    String resolveEjb(EjbReference reference, JBossMetaData jbossMetaData, ClassLoader cl);
 }

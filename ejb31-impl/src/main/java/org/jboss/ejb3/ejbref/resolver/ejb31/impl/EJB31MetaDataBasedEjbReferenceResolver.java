@@ -30,9 +30,15 @@ import org.jboss.metadata.ejb.jboss.JBossMetaData;
 import org.jboss.metadata.ejb.jboss.JBossSessionBean31MetaData;
 import org.jboss.metadata.ejb.jboss.JBossSessionBeanMetaData;
 import org.jboss.metadata.ejb.jboss.jndi.resolver.impl.JNDIPolicyBasedSessionBean31JNDINameResolver;
+import org.jboss.metadata.ejb.jboss.jndipolicy.spi.DefaultJndiBindingPolicy;
 
 /**
- * EJB31MetaDataBasedEjbReferenceResolver
+ * Resolves the jndi name out of an {@link EjbReference} for EJB3 and EJB3.1 beans.
+ * 
+ * <p>
+ *  This resolver takes into account EJB3.1 semantics including no-interface view 
+ *  while resolving the jndi name from the {@link EjbReference}
+ * </p>
  *
  * @author Jaikiran Pai
  * @version $Revision: $
@@ -40,8 +46,24 @@ import org.jboss.metadata.ejb.jboss.jndi.resolver.impl.JNDIPolicyBasedSessionBea
 public class EJB31MetaDataBasedEjbReferenceResolver extends EJB30MetaDataBasedEjbReferenceResolver
 {
 
+   /** Logger */
    private static Logger logger = Logger.getLogger(EJB31MetaDataBasedEjbReferenceResolver.class);
 
+   /**
+    * JNDI binding policy which will be used for resolving the jndi name
+    */
+   protected DefaultJndiBindingPolicy jndiBindingPolicy;
+
+   /**
+    * {@inheritDoc}
+    * <p>
+    * This method takes into account no-interface view of EJB3.1 beans and checks
+    * whether the passed {@link EjbReference} represents a no-interface of a bean. If the
+    * passed {@link EjbReference} represents a no-interface view of the passed session bean metadata
+    * then this method returns true. Else it let's the {@link EJB30MetaDataBasedEjbReferenceResolver} do the
+    * matching.
+    * </p>
+    */
    @Override
    protected boolean isMatch(EjbReference reference, JBossSessionBeanMetaData md, ClassLoader cl)
    {
@@ -55,6 +77,11 @@ public class EJB31MetaDataBasedEjbReferenceResolver extends EJB30MetaDataBasedEj
       return super.isMatch(reference, md, cl);
    }
 
+   /**
+    * {@inheritDoc}
+    * This method takes into account the no-interface view (if present) of the passed session bean
+    * while determining the jndi name of the passed {@link EjbReference}
+    */
    @Override
    protected String getJNDIName(EjbReference reference, JBossSessionBeanMetaData smd, ClassLoader cl)
    {
@@ -101,13 +128,33 @@ public class EJB31MetaDataBasedEjbReferenceResolver extends EJB30MetaDataBasedEj
 
       }
 
-      // Return
-      JNDIPolicyBasedSessionBean31JNDINameResolver jndiNameResolver = new JNDIPolicyBasedSessionBean31JNDINameResolver();
+      // use a jndi name resolver
+      JNDIPolicyBasedSessionBean31JNDINameResolver jndiNameResolver = this.getJNDINameResolver();
+      // resolve
       String resolvedJndiName = jndiNameResolver.resolveJNDIName(smd, interfaceName);
+
+      // return the resolved jndi name
       logger.debug("Resolved JNDI Name for " + reference + " of EJB " + smd.getEjbName() + ": " + resolvedJndiName);
       return resolvedJndiName;
    }
 
+   /**
+    * Sets the jndi binding policy which will be used to resolve the jndi name
+    * 
+    * @param jndiBindingPolicy
+    */
+   public void setJNDIBindingPolicy(DefaultJndiBindingPolicy jndiBindingPolicy)
+   {
+      this.jndiBindingPolicy = jndiBindingPolicy;
+   }
+
+   /**
+    * Returns true if the passed session bean metadata represents a EJB3.1 bean
+    * which exposes a no-interface view. Else returns false.
+    * 
+    * @param smd Session bean metadata
+    * @return
+    */
    protected boolean hasNoInterfaceView(JBossSessionBeanMetaData smd)
    {
       if (isEJB31(smd) == false)
@@ -122,9 +169,29 @@ public class EJB31MetaDataBasedEjbReferenceResolver extends EJB30MetaDataBasedEj
       return sessionBean31.isNoInterfaceBean();
    }
 
+   /**
+    * Returns true if the passed session bean metadata represents a EJB3.1 bean
+    * @param smd Session bean metadata
+    * @return
+    */
    protected boolean isEJB31(JBossSessionBeanMetaData smd)
    {
       JBossMetaData jbossMetaData = smd.getJBossMetaData();
       return jbossMetaData.isEJB31();
    }
+
+   /**
+    * Returns a {@link JNDIPolicyBasedSessionBean31JNDINameResolver} to resolve jndi names
+    * from metadata.
+    * @return
+    */
+   private JNDIPolicyBasedSessionBean31JNDINameResolver getJNDINameResolver()
+   {
+      if (this.jndiBindingPolicy == null)
+      {
+         return new JNDIPolicyBasedSessionBean31JNDINameResolver();
+      }
+      return new JNDIPolicyBasedSessionBean31JNDINameResolver(this.jndiBindingPolicy);
+   }
+
 }

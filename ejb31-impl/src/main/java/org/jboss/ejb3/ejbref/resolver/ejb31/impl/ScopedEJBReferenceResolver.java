@@ -23,7 +23,8 @@ package org.jboss.ejb3.ejbref.resolver.ejb31.impl;
 
 
 /**
- * ScopedEjbReferenceResolver
+ * Same as the EJB3.0 version of {@link org.jboss.ejb3.ejbref.resolver.ejb30.impl.ScopedEJBReferenceResolver}
+ * except that this {@link ScopedEJBReferenceResolver} can handle EJB3.1 beans 
  *
  * @author Jaikiran Pai
  * @version $Revision: $
@@ -31,6 +32,9 @@ package org.jboss.ejb3.ejbref.resolver.ejb31.impl;
 public class ScopedEJBReferenceResolver extends org.jboss.ejb3.ejbref.resolver.ejb30.impl.ScopedEJBReferenceResolver
 {
 
+   /**
+    * Creates a {@link ScopedEJBReferenceResolver} which will use {@link EJB31MetaDataBasedEjbReferenceResolver}
+    */
    public ScopedEJBReferenceResolver()
    {
       this.metadataBasedEjbReferenceResolver = new EJB31MetaDataBasedEjbReferenceResolver();

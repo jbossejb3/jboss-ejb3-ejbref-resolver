@@ -22,7 +22,8 @@
 package org.jboss.ejb3.ejbref.resolver.ejb31.impl;
 
 /**
- * FirstMatchEjbReferenceResolver
+ * Same as the EJB3.0 version of {@link org.jboss.ejb3.ejbref.resolver.ejb30.impl.FirstMatchEjbReferenceResolver}
+ * except that this {@link FirstMatchEjbReferenceResolver} can handle EJB3.1 beans 
  *
  * @author Jaikiran Pai
  * @version $Revision: $
@@ -30,6 +31,9 @@ package org.jboss.ejb3.ejbref.resolver.ejb31.impl;
 public class FirstMatchEjbReferenceResolver extends org.jboss.ejb3.ejbref.resolver.ejb30.impl.FirstMatchEjbReferenceResolver
 {
 
+   /**
+    * Creates a {@link FirstMatchEjbReferenceResolver} which will use {@link EJB31MetaDataBasedEjbReferenceResolver}
+    */
    public FirstMatchEjbReferenceResolver()
    {
       this.metadataBasedEjbReferenceResolver = new EJB31MetaDataBasedEjbReferenceResolver();

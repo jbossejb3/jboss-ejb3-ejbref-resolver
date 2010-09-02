@@ -38,11 +38,10 @@ import org.jboss.metadata.ejb.spec.BusinessLocalsMetaData;
 import org.jboss.metadata.ejb.spec.BusinessRemotesMetaData;
 
 /**
- * EjbReferenceResolverBase
+ * Resolves a jndi name from a {@link EjbReference} for EJB3.0 beans.
  * 
- * A base upon which EJB Reference Resolvers
- * may build upon.  Provides capabilities expected
- * to be required by providers.
+ * Note that this resolver has no knowledge of EJB3.1 beans and can't handle no-interface
+ * views. For EJB3.1 beans, use org.jboss.ejb3.ejbref.resolver.ejb31.impl.EJB31MetaDataBasedEjbReferenceResolver
  *
  * @author <a href="mailto:andrew.rubinger@jboss.org">ALR</a>
  * @version $Revision: $

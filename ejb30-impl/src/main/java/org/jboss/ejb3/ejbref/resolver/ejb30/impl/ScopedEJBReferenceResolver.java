@@ -41,8 +41,12 @@ public class ScopedEJBReferenceResolver implements EjbReferenceResolver
 
    private static Logger logger = Logger.getLogger(ScopedEJBReferenceResolver.class);
    
+   /** The resolver which will be passed the bean metadata to resolve the jndi-name */
    protected MetaDataBasedEjbReferenceResolver metadataBasedEjbReferenceResolver;
 
+   /**
+    * Creates {@link ScopedEJBReferenceResolver} which will use {@link EJB30MetaDataBasedEjbReferenceResolver}
+    */
    public ScopedEJBReferenceResolver()
    {
       this.metadataBasedEjbReferenceResolver = new EJB30MetaDataBasedEjbReferenceResolver();
@@ -162,6 +166,10 @@ public class ScopedEJBReferenceResolver implements EjbReferenceResolver
       return du.getAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, JBossMetaData.class);
    }
 
+   /**
+    * Returns the {@link MetaDataBasedEjbReferenceResolver} which this {@link EjbReferenceResolver} uses
+    * @return
+    */
    protected MetaDataBasedEjbReferenceResolver getMetaDataBasedEjbReferenceResolver()
    {
       return this.metadataBasedEjbReferenceResolver;
