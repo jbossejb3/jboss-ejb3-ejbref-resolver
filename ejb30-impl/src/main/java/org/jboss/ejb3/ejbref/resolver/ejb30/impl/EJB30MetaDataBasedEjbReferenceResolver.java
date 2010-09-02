@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.jboss.ejb3.common.deployers.spi.AttachmentNames;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReference;
 import org.jboss.ejb3.ejbref.resolver.spi.NonDeterministicInterfaceException;
 import org.jboss.logging.Logger;
@@ -57,7 +56,14 @@ public class EJB30MetaDataBasedEjbReferenceResolver implements MetaDataBasedEjbR
    /**
     * The attachment name of the metadata within the DU
     */
-   public static final String DU_ATTACHMENT_NAME_METADATA = AttachmentNames.PROCESSED_METADATA;
+   //public static final String DU_ATTACHMENT_NAME_METADATA = AttachmentNames.PROCESSED_METADATA;
+   // Horrible hack!!! Should have relied on org.jboss.ejb3.common.deployers.spi.AttachmentNames.PROCESSED_METADATA
+   // but that's going to bring in the jboss-ejb3-common dependency which is really unnecessary for just
+   // this constant and also because it can lead to circular dependency because jboss-ejb3-common, going forward
+   // would use this jboss-ejb3-ejbref-resolver
+   // FIXME: The attachment name shouldn't be hardcoded here.
+   public static final String DU_ATTACHMENT_NAME_METADATA = "processed." + JBossMetaData.class.getName();
+   
 
    public String resolveEjb(EjbReference reference, JBossMetaData jbossMetaData, ClassLoader cl)
    {
@@ -82,15 +88,6 @@ public class EJB30MetaDataBasedEjbReferenceResolver implements MetaDataBasedEjbR
       // Initialize
       log.debug("Resolving reference for " + reference + " in " + metadata);
       Collection<JBossSessionBeanMetaData> matches = new ArrayList<JBossSessionBeanMetaData>();
-
-      /*
-      //       * If mapped-name is defined, bypass all other resolution and use it 
-      //       */
-      //      String mappedName = reference.getMappedName();
-      //      if (mappedName != null && mappedName.trim().length() > 0)
-      //      {
-      //         return mappedName;
-      //      }
 
       // Get all Enterprise Beans contained in the metadata
       JBossEnterpriseBeansMetaData beans = metadata.getEnterpriseBeans();

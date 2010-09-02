@@ -28,7 +28,7 @@ import java.util.Collection;
 import junit.framework.Assert;
 
 import org.jboss.deployers.structure.spi.DeploymentUnit;
-import org.jboss.ejb3.common.deployers.spi.AttachmentNames;
+import org.jboss.ejb3.ejbref.resolver.ejb30.impl.EJB30MetaDataBasedEjbReferenceResolver;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.MockDeploymentUnit;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.unit.FirstMatchEjbReferenceResolverUnitTestCase;
 import org.jboss.ejb3.ejbref.resolver.ejb31.impl.FirstMatchEjbReferenceResolver;
@@ -98,11 +98,11 @@ public class FirstMatchEjbReferenceResolverTestCase extends FirstMatchEjbReferen
       MockDeploymentUnit parentDU = new MockDeploymentUnit("Parent DU");
       // DU with no-interface view bean
       DeploymentUnit nointerfaceBeanDU = new MockDeploymentUnit("No-interface bean DU", parentDU);
-      nointerfaceBeanDU.addAttachment(AttachmentNames.PROCESSED_METADATA, nointerfaceBeanMetaData);
+      nointerfaceBeanDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, nointerfaceBeanMetaData);
 
       // the DU with some other bean
       DeploymentUnit someOtherBeanDU = new MockDeploymentUnit("Some other bean DU", parentDU);
-      someOtherBeanDU.addAttachment(AttachmentNames.PROCESSED_METADATA, someOtherBeanMetaData);
+      someOtherBeanDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, someOtherBeanMetaData);
 
       // Set children of parents for bi-directional support
       parentDU.addChild(nointerfaceBeanDU);
@@ -165,11 +165,11 @@ public class FirstMatchEjbReferenceResolverTestCase extends FirstMatchEjbReferen
       MockDeploymentUnit parentDU = new MockDeploymentUnit("Parent DU");
       // DU with no-interface view bean
       DeploymentUnit nointerfaceBeanDU = new MockDeploymentUnit("No-interface bean DU", parentDU);
-      nointerfaceBeanDU.addAttachment(AttachmentNames.PROCESSED_METADATA, nointerfaceBeanMetaData);
+      nointerfaceBeanDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, nointerfaceBeanMetaData);
 
       // the DU with some other bean
       DeploymentUnit someOtherBeanDU = new MockDeploymentUnit("Some other bean DU", parentDU);
-      someOtherBeanDU.addAttachment(AttachmentNames.PROCESSED_METADATA, someOtherBeanMetaData);
+      someOtherBeanDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, someOtherBeanMetaData);
 
       // Set children of parents for bi-directional support
       parentDU.addChild(nointerfaceBeanDU);
@@ -232,11 +232,11 @@ public class FirstMatchEjbReferenceResolverTestCase extends FirstMatchEjbReferen
       MockDeploymentUnit parentDU = new MockDeploymentUnit("Parent DU");
       // DU with no-interface view bean
       DeploymentUnit nointerfaceBeanDU = new MockDeploymentUnit("No-interface bean DU", parentDU);
-      nointerfaceBeanDU.addAttachment(AttachmentNames.PROCESSED_METADATA, nointerfaceBeanMetaData);
+      nointerfaceBeanDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, nointerfaceBeanMetaData);
 
       // the DU with some other bean
       DeploymentUnit someOtherBeanDU = new MockDeploymentUnit("Some other bean DU", parentDU);
-      someOtherBeanDU.addAttachment(AttachmentNames.PROCESSED_METADATA, someOtherBeanMetaData);
+      someOtherBeanDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, someOtherBeanMetaData);
 
       // Set children of parents for bi-directional support
       parentDU.addChild(nointerfaceBeanDU);
@@ -297,7 +297,7 @@ public class FirstMatchEjbReferenceResolverTestCase extends FirstMatchEjbReferen
       MockDeploymentUnit parentDU = new MockDeploymentUnit("Parent DU");
       // DU with no-interface view bean
       DeploymentUnit nointerfaceBeanDU = new MockDeploymentUnit("No-interface bean DU", parentDU);
-      nointerfaceBeanDU.addAttachment(AttachmentNames.PROCESSED_METADATA, nointerfaceBeanMetaData);
+      nointerfaceBeanDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, nointerfaceBeanMetaData);
       // Set children of parents for bi-directional support
       parentDU.addChild(nointerfaceBeanDU);
 

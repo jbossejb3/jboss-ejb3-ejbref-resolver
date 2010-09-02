@@ -28,7 +28,8 @@ import java.util.Collection;
 import junit.framework.Assert;
 
 import org.jboss.deployers.structure.spi.DeploymentUnit;
-import org.jboss.ejb3.common.deployers.spi.AttachmentNames;
+
+import org.jboss.ejb3.ejbref.resolver.ejb30.impl.EJB30MetaDataBasedEjbReferenceResolver;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.ScopedEJBReferenceResolver;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.Echo;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.EchoBean;
@@ -106,15 +107,15 @@ public class ScopedEjbReferenceResolverUnitTestCase extends EjbReferenceResolver
       MockDeploymentUnit parentDU = new MockDeploymentUnit("Parent DU");
       // Child1 DU
       DeploymentUnit childOneDU = new MockDeploymentUnit("Child One DU", parentDU);
-      childOneDU.addAttachment(AttachmentNames.PROCESSED_METADATA, childOneBeanMetaData);
+      childOneDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, childOneBeanMetaData);
 
       // Child2 DU
       DeploymentUnit childTwoDU = new MockDeploymentUnit("Child One DU", parentDU);
-      childTwoDU.addAttachment(AttachmentNames.PROCESSED_METADATA, childTwoBeanMetaData);
+      childTwoDU.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, childTwoBeanMetaData);
 
       // the DU with the echo bean
       DeploymentUnit duWithEchoBean = new MockDeploymentUnit("DU With Echo bean", parentDU);
-      duWithEchoBean.addAttachment(AttachmentNames.PROCESSED_METADATA, echoBeanMetaData);
+      duWithEchoBean.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, echoBeanMetaData);
 
       // Set children of parents for bi-directional support
       parentDU.addChild(childOneDU);

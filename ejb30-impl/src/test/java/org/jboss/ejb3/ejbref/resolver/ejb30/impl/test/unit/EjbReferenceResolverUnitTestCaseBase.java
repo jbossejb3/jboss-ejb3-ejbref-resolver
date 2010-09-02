@@ -54,7 +54,7 @@ import java.util.Map;
 import junit.framework.TestCase;
 
 import org.jboss.deployers.structure.spi.DeploymentUnit;
-import org.jboss.ejb3.common.deployers.spi.AttachmentNames;
+import org.jboss.ejb3.ejbref.resolver.ejb30.impl.EJB30MetaDataBasedEjbReferenceResolver;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.FirstMatchEjbReferenceResolver;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.Child1Bean;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.Child1CommonBusiness;
@@ -441,23 +441,23 @@ public abstract class EjbReferenceResolverUnitTestCaseBase
 
       // Parent DU
       parentDu = new MockDeploymentUnit("Parent");
-      parentDu.addAttachment(AttachmentNames.PROCESSED_METADATA, parentMd);
+      parentDu.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, parentMd);
 
       // Child1 DU
       child1Du = new MockDeploymentUnit("Child 1", parentDu);
-      child1Du.addAttachment(AttachmentNames.PROCESSED_METADATA, child1Md);
+      child1Du.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, child1Md);
 
       // Child1 DU
       child2Du = new MockDeploymentUnit("Child 2", parentDu);
-      child2Du.addAttachment(AttachmentNames.PROCESSED_METADATA, child2Md);
+      child2Du.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, child2Md);
 
       // Service Bean DU
       MockDeploymentUnit serviceDu = new MockDeploymentUnit("Child Service", parentDu);
-      serviceDu.addAttachment(AttachmentNames.PROCESSED_METADATA, serviceMd);
+      serviceDu.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, serviceMd);
 
       // Nested Child DU
       nestedChildDu = new MockDeploymentUnit("Nested Child", child1Du);
-      nestedChildDu.addAttachment(AttachmentNames.PROCESSED_METADATA, nestedChildMd);
+      nestedChildDu.addAttachment(EJB30MetaDataBasedEjbReferenceResolver.DU_ATTACHMENT_NAME_METADATA, nestedChildMd);
 
       // Set children of parents for bi-directional support
       parentDu.addChild(child1Du);
