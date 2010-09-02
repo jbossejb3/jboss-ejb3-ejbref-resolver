@@ -19,7 +19,7 @@
     <url>http://www.jboss.org/jbossejb3/</url>
 
     <properties>
-        <version.jboss.metadata.ejb>2.0.0-SNAPSHOT</version.jboss.metadata.ejb>
+        <version.jboss.metadata.ejb>2.0.0-alpha-18</version.jboss.metadata.ejb>
     </properties>
 
     <dependencies>
