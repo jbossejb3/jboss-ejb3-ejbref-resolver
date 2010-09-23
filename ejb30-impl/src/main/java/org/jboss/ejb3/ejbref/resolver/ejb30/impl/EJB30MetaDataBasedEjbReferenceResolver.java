@@ -196,24 +196,48 @@ public class EJB30MetaDataBasedEjbReferenceResolver implements MetaDataBasedEjbR
     */
    protected boolean isMatch(EjbReference reference, JBossSessionBeanMetaData md, ClassLoader cl)
    {
-      // Initialize
-      List<String> interfaces = new ArrayList<String>();
+      
+      // Get the requested EJB name
+      String requestedEJBName = reference.getBeanName();
 
-      // Add all eligible bean interfaces
-      interfaces.addAll(this.getAllParentInterfaces(this.getEligibleBeanInterfaces(md), cl));
+      // If the EJB name is explicitly-provided then match it with the
+      // bean name in the metadata. If the names match, then this bean is considered
+      // a match. 
+      if (requestedEJBName != null && requestedEJBName.trim().length() > 0)
+      {
+         return requestedEJBName.equals(md.getEjbName());
+      }
+
+      // Now get the interfaces that are directly eligible on the bean (i.e. business local, business remote,
+      // remote home, local home, local, remote interfaces).
+      Collection<String> directlyEligibleInterfacesOnBean = this.getEligibleBeanInterfaces(md);
 
       // Get the requested bean interface 
       String requestedInterface = reference.getBeanInterface();
       assert requestedInterface != null && requestedInterface.trim().length() > 0 : "beanInterface must be specified";
 
+      // If the directly eligible interfaces on the bean match the requested
+      // interface, then we have a match.
+      if (directlyEligibleInterfacesOnBean.contains(requestedInterface))
+      {
+         return true;
+      }
+      
+      // The directly eligible interfaces on the bean did not match the requested interface,
+      // so now get hold of all parent interfaces of the directly eligible interfaces and try
+      // to find a (unique) match
+      List<String> allInterfacesOnBean = new ArrayList<String>();
+      // Add all parents of directly eligible bean interfaces
+      allInterfacesOnBean.addAll(this.getAllParentInterfaces(directlyEligibleInterfacesOnBean, cl));
+
       // Does this EJB have the requested interface?
-      if (interfaces.contains(requestedInterface))
+      if (allInterfacesOnBean.contains(requestedInterface))
       {
          /*
           * Check that the interface is unique to this EJB
           */
          boolean found = false;
-         for (String interfaze : interfaces)
+         for (String interfaze : allInterfacesOnBean)
          {
             boolean equal = interfaze.equals(requestedInterface);
             if (equal && !found)
@@ -224,19 +248,6 @@ public class EJB30MetaDataBasedEjbReferenceResolver implements MetaDataBasedEjbR
             {
                throw new NonDeterministicInterfaceException("beanInterface specified, " + interfaze
                      + ", is not unique within EJB " + md.getEjbName());
-            }
-         }
-
-         // Get the requested EJB name
-         String ejbName = reference.getBeanName();
-
-         // If the EJB name is explicitly-provided
-         if (ejbName != null && ejbName.trim().length() > 0)
-         {
-            // Ensure the EJB name matches this EJB
-            if (!ejbName.equals(md.getEjbName()))
-            {
-               return false;
             }
          }
 

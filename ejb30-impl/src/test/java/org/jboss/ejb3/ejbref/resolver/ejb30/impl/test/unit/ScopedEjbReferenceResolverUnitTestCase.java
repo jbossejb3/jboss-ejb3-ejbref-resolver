@@ -36,6 +36,7 @@ import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.EchoBean;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.MockDeploymentUnit;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.NotSoSimpleCalculator;
 import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.SimpleCalculator;
+import org.jboss.ejb3.ejbref.resolver.ejb30.impl.test.common.MetadataUtil;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReference;
 import org.jboss.ejb3.ejbref.resolver.spi.EjbReferenceResolver;
 import org.jboss.logging.Logger;
@@ -99,9 +100,9 @@ public class ScopedEjbReferenceResolverUnitTestCase extends EjbReferenceResolver
       JBoss50MetaData childTwoBeanMetaData = creator.create(childTwoDUClasses);
 
       // Decorate all EJBs w/ JNDI Policy
-      EjbReferenceResolverUnitTestCaseBase.decorateEjbsWithJndiPolicy(echoBeanMetaData, Thread.currentThread().getContextClassLoader());
-      EjbReferenceResolverUnitTestCaseBase.decorateEjbsWithJndiPolicy(childOneBeanMetaData, Thread.currentThread().getContextClassLoader());
-      EjbReferenceResolverUnitTestCaseBase.decorateEjbsWithJndiPolicy(childTwoBeanMetaData, Thread.currentThread().getContextClassLoader());
+      MetadataUtil.decorateEjbsWithJndiPolicy(echoBeanMetaData, Thread.currentThread().getContextClassLoader());
+      MetadataUtil.decorateEjbsWithJndiPolicy(childOneBeanMetaData, Thread.currentThread().getContextClassLoader());
+      MetadataUtil.decorateEjbsWithJndiPolicy(childTwoBeanMetaData, Thread.currentThread().getContextClassLoader());
 
       // create a parent DU
       MockDeploymentUnit parentDU = new MockDeploymentUnit("Parent DU");
