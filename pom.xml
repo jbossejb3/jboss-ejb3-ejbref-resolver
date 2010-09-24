@@ -8,7 +8,7 @@
     <!-- Artifact Information -->
     <groupId>org.jboss.ejb3.ejbref.resolver</groupId>
     <artifactId>ejbref-resolver-parent</artifactId>
-    <version>1.0.0-alpha-2</version>
+    <version>1.0.0-alpha-3-SNAPSHOT</version>
     <name>JBoss EJB 3.0 @EJB reference resolvers</name>
     <url>http://www.jboss.org/jbossejb3/</url>
     <packaging>pom</packaging>
