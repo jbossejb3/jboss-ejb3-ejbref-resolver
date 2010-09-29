@@ -81,7 +81,7 @@
             <groupId>org.jboss.javaee</groupId>
             <artifactId>jboss-persistence-api</artifactId>
             <version>3.0.0.CR1</version>
-            <scope>runtime</scope>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
