@@ -57,23 +57,33 @@ public class EJB31MetaDataBasedEjbReferenceResolver extends EJB30MetaDataBasedEj
    /**
     * {@inheritDoc}
     * <p>
-    * This method takes into account no-interface view of EJB3.1 beans and checks
-    * whether the passed {@link EjbReference} represents a no-interface of a bean. If the
-    * passed {@link EjbReference} represents a no-interface view of the passed session bean metadata
-    * then this method returns true. Else it let's the {@link EJB30MetaDataBasedEjbReferenceResolver} do the
-    * matching.
+    * In addition to the checks performed by the <code>isMatch()</code> method in 
+    * {@link EJB30MetaDataBasedEjbReferenceResolver}, this method takes into account no-interface view of EJB3.1 beans and checks
+    * whether the passed {@link EjbReference} represents a no-interface of a bean. 
     * </p>
     */
    @Override
    protected boolean isMatch(EjbReference reference, JBossSessionBeanMetaData md, ClassLoader cl)
    {
+      // let's see if this is a no-interface view reference
       if (this.hasNoInterfaceView(md))
       {
-         if (md.getEjbClass().equals(reference.getBeanInterface()))
+         if(md.getEjbClass().equals(reference.getBeanInterface()))
          {
+            // the requested bean interface matches the nointerface view bean class name
+            // Now let's see if there's an explicit bean name specified. If such an 
+            // explicit bean name is specified then make sure it matches the current bean's name
+            String requestedEJBName = reference.getBeanName();
+            if (requestedEJBName != null && requestedEJBName.trim().length() > 0)
+            {
+               return requestedEJBName.equals(md.getEjbName());
+            }
+            // no explicit bean name specified, so it's a match (due to matching business interface)
             return true;
          }
       }
+
+      // let the super handle it  
       return super.isMatch(reference, md, cl);
    }
 
