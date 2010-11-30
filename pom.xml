@@ -1,3 +1,6 @@
+<!--
+    vim:ts=4:sw=4:expandtab
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -221,5 +224,11 @@
 
         </plugins>
     </reporting>
+
+    <scm>
+        <connection>scm:git:git://github.com/jbossejb3/jboss-ejb3-ejbref-resolver.git</connection>
+        <developerConnection>scm:git:git@github.com:jbossejb3/jboss-ejb3-ejbref-resolver.git</developerConnection>
+        <url>http://github.com/jbossejb3/jboss-ejb3-ejbref-resolver</url>
+    </scm>
 
 </project>
